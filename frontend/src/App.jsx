@@ -4,7 +4,6 @@ import ScenarioSelector from './components/ScenarioSelector';
 import KpiCards from './components/KpiCards';
 import SafetyBanner from './components/SafetyBanner';
 import SensorChart from './components/SensorChart';
-import CorrelationHeatmap from './components/CorrelationHeatmap';
 import EvidenceTable from './components/EvidenceTable';
 import HypothesisCards from './components/HypothesisCards';
 import ShiftSignOff from './components/ShiftSignOff';
@@ -13,22 +12,16 @@ import ReportView from './components/ReportView';
 import FaqSection from './components/FaqSection';
 import ScrollProgress from './components/ScrollProgress';
 import BackToTop from './components/BackToTop';
-import ConsentNotice from './components/ConsentNotice';
-import FloatingContact from './components/FloatingContact';
 import DataPolicyModal from './components/DataPolicyModal';
 import TermsAndConditions from './components/TermsAndConditions';
-import { initUtmTracker } from './utils/utmTracker';
-import { Activity, Database, FileText, RefreshCw, Play, BarChart2, ShieldCheck, PenTool } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8000/api';
 
 export default function App() {
   const [isApiOnline, setIsApiOnline] = useState(false);
-  const [llmProvider, setLlmProvider] = useState('Gemini 2.5');
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState('');
-  const [activeTab, setActiveTab] = useState('charts');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('briefing');
 
   const [currentPayload, setCurrentPayload] = useState(null);
   const [processedData, setProcessedData] = useState(null);
@@ -40,7 +33,6 @@ export default function App() {
   const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   useEffect(() => {
-    initUtmTracker();
     fetchHealth();
     fetchScenarios();
   }, []);
@@ -49,9 +41,7 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE}/health`);
       if (res.ok) {
-        const data = await res.json();
         setIsApiOnline(true);
-        if (data.llm_provider) setLlmProvider(data.llm_provider);
       }
     } catch (err) {
       setIsApiOnline(false);
@@ -146,7 +136,6 @@ export default function App() {
           const updatedNext = await carryRes.json();
           setCurrentPayload(updatedNext);
           processShiftData(updatedNext);
-          setActiveTab('charts');
         }
       }
     } catch (err) {
@@ -169,25 +158,18 @@ export default function App() {
     }
   }, [scenarios]);
 
-  const filteredEvidence = processedData?.evidence_table?.filter(e =>
-    !searchQuery || e.evidence_proof.toLowerCase().includes(searchQuery.toLowerCase()) || e.metric_or_alarm.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <ScrollProgress />
 
       <Header
         isApiOnline={isApiOnline}
-        llmProvider={llmProvider}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onOpenPrivacy={() => setIsPrivacyOpen(true)}
-        onOpenTerms={() => setIsTermsOpen(true)}
+        shiftId={currentPayload?.shift_id}
+        lineId={currentPayload?.line_id}
       />
 
       <main className="dashboard-container">
-        {/* Scenario Loader Bar */}
+        {/* Scenario Loader Control Bar */}
         <ScenarioSelector
           scenarios={scenarios}
           activeScenarioId={activeScenarioId}
@@ -195,7 +177,7 @@ export default function App() {
           onFileUpload={handleCustomFileUpload}
         />
 
-        {/* Safety Critical Alert Banner */}
+        {/* Safety Critical Alert Banner (Unsuppressed) */}
         {processedData && (
           <SafetyBanner
             safetyAlarms={processedData.safety_alarms}
@@ -203,77 +185,62 @@ export default function App() {
           />
         )}
 
-        {/* Deterministic KPI Cards */}
-        {processedData && <KpiCards kpis={processedData.kpis} />}
+        {/* Deterministic Horizontal KPI Strip */}
+        <KpiCards kpis={processedData?.kpis} />
 
-        {/* Action Controls & Navigation Tabs */}
-        <div className="industrial-card no-print" style={{ padding: '0.75rem 1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+        {/* Workspace Mode Bar */}
+        <div className="industrial-card no-print" style={{ padding: '0.5rem 1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.35rem' }}>
               <button
-                onClick={() => setActiveTab('charts')}
-                className={`btn ${activeTab === 'charts' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setActiveTab('briefing')}
+                className={`btn ${activeTab === 'briefing' ? 'btn-primary' : ''}`}
               >
-                <BarChart2 size={15} />
-                <span>Sensor Charts & Heatmap</span>
+                Shift Briefing & Evidence
               </button>
 
               <button
                 onClick={() => setActiveTab('hypotheses')}
-                className={`btn ${activeTab === 'hypotheses' ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn ${activeTab === 'hypotheses' ? 'btn-primary' : ''}`}
               >
-                <ShieldCheck size={15} />
-                <span>Hypothesis Checklist</span>
+                Hypothesis Checklist
               </button>
 
               <button
                 onClick={() => setActiveTab('signoff')}
-                className={`btn ${activeTab === 'signoff' ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn ${activeTab === 'signoff' ? 'btn-primary' : ''}`}
               >
-                <PenTool size={15} />
-                <span>Shift Sign-Off</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('evidence')}
-                className={`btn ${activeTab === 'evidence' ? 'btn-primary' : 'btn-secondary'}`}
-              >
-                <Database size={15} />
-                <span>Evidence Table</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('report')}
-                className={`btn ${activeTab === 'report' ? 'btn-primary' : 'btn-secondary'}`}
-              >
-                <FileText size={15} />
-                <span>Handover Briefing & Audit</span>
+                Shift Sign-Off Log
               </button>
 
               <button
                 onClick={() => setActiveTab('multishift')}
-                className={`btn ${activeTab === 'multishift' ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn ${activeTab === 'multishift' ? 'btn-primary' : ''}`}
               >
-                <RefreshCw size={15} />
-                <span>24H Multi-Shift Timeline</span>
+                24H Multi-Shift Timeline
               </button>
             </div>
 
-            <button
-              onClick={() => currentPayload && generateReport(currentPayload)}
-              className="btn btn-primary"
-            >
-              <Play size={14} />
-              <span>Re-run Handover Briefing</span>
-            </button>
+            <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.75rem' }}>
+              <button onClick={() => setIsPrivacyOpen(true)} className="btn" style={{ padding: '0.25rem 0.5rem' }}>
+                Privacy Policy
+              </button>
+              <button onClick={() => setIsTermsOpen(true)} className="btn" style={{ padding: '0.25rem 0.5rem' }}>
+                Terms & Conditions
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Tab View Contents */}
-        {activeTab === 'charts' && processedData && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <SensorChart sensorReadings={currentPayload?.sensor_readings} />
-            <CorrelationHeatmap correlations={processedData.correlations} />
+        {/* Streamlined Workspace Views */}
+        {activeTab === 'briefing' && (
+          <div className="workspace-grid">
+            <ReportView reportResponse={reportResponse} isLoading={isLoading} />
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {processedData && <EvidenceTable evidence={processedData.evidence_table} />}
+              <SensorChart sensorReadings={currentPayload?.sensor_readings} />
+            </div>
           </div>
         )}
 
@@ -289,14 +256,6 @@ export default function App() {
           <ShiftSignOff shiftId={currentPayload.shift_id} lineId={currentPayload.line_id} />
         )}
 
-        {activeTab === 'evidence' && processedData && (
-          <EvidenceTable evidence={filteredEvidence} />
-        )}
-
-        {activeTab === 'report' && (
-          <ReportView reportResponse={reportResponse} isLoading={isLoading} />
-        )}
-
         {activeTab === 'multishift' && (
           <MultiShiftView
             scenarios={scenarios}
@@ -305,13 +264,11 @@ export default function App() {
           />
         )}
 
-        {/* FAQ Section */}
+        {/* Native Accordion FAQ Section */}
         <FaqSection />
       </main>
 
       <BackToTop />
-      <ConsentNotice />
-      <FloatingContact />
 
       <DataPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
       <TermsAndConditions isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />

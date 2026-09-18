@@ -14,6 +14,7 @@ import ShiftChatbot from './components/ShiftChatbot';
 import LoginPage from './components/LoginPage';
 import { auth, onAuthStateChanged, signOut } from './firebase';
 import { DEFAULT_PAYLOAD, processClientShift } from './data/defaultScenarios';
+import { isEmailAuthorized } from './config/authorizedUsers';
 
 const API_BASE = window.location.hostname === 'localhost'
   ? 'http://localhost:8000/api'
@@ -38,15 +39,24 @@ export default function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     fetchHealth();
     fetchScenarios();
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setCurrentUser(user);
-        setIsLoginOpen(false);
+        if (isEmailAuthorized(user.email)) {
+          setCurrentUser(user);
+          setIsLoginOpen(false);
+          setAuthError('');
+        } else {
+          console.warn(`Unauthorized login attempt by: ${user.email}`);
+          await signOut(auth);
+          setCurrentUser(null);
+          setAuthError(`Access Denied: Account '${user.email}' is not on the authorized personnel list.`);
+        }
       } else {
         setCurrentUser(null);
       }
@@ -148,6 +158,7 @@ export default function App() {
       <LoginPage
         isOpen={true}
         isForced={true}
+        initialError={authError}
         onLoginSuccess={(user) => setCurrentUser(user)}
       />
     );

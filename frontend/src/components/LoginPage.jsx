@@ -4,13 +4,15 @@ import {
   auth, 
   googleProvider, 
   signInWithPopup, 
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  signOut
 } from '../firebase';
+import { isEmailAuthorized } from '../config/authorizedUsers';
 
-export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = false }) {
+export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = false, initialError = '' }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -24,6 +26,14 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = 
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      if (!isEmailAuthorized(userCredential.user?.email)) {
+        await signOut(auth);
+        setError(`Access Denied: Email '${userCredential.user?.email}' is not on the authorized personnel whitelist. Contact plant administration.`);
+        setLoading(false);
+        return;
+      }
+
       setSuccessMsg("Shift Supervisor authenticated successfully.");
 
       setTimeout(() => {
@@ -51,7 +61,17 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = 
 
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      setSuccessMsg(`Authenticated as ${result.user.displayName || result.user.email}`);
+      const userEmail = result.user?.email;
+
+      if (!isEmailAuthorized(userEmail)) {
+        console.warn(`Unauthorized Google SSO attempt: ${userEmail}`);
+        await signOut(auth);
+        setError(`Access Denied: The Google account '${userEmail}' is not on the authorized list of personnel. Access restricted.`);
+        setLoading(false);
+        return;
+      }
+
+      setSuccessMsg(`Authenticated as ${result.user.displayName || userEmail}`);
       setTimeout(() => {
         if (onLoginSuccess) onLoginSuccess(result.user);
         onClose();
@@ -73,6 +93,12 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = 
     setPassword('DemoShiftPass2026!');
     setLoading(true);
     setError('');
+
+    if (!isEmailAuthorized(demoEmail)) {
+      setError(`Access Denied: Demo account '${demoEmail}' is not whitelisted.`);
+      setLoading(false);
+      return;
+    }
     
     // Simulate shift supervisor authentication
     setTimeout(() => {

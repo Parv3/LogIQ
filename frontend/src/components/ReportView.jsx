@@ -13,7 +13,7 @@ export default function ReportView({ reportResponse, isLoading }) {
   if (!reportResponse) {
     return (
       <div className="industrial-card" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-        Click <strong>"Generate Shift Handover Report"</strong> to compile briefing.
+        Select a shift scenario above to load the operational handover report.
       </div>
     );
   }
@@ -48,16 +48,16 @@ export default function ReportView({ reportResponse, isLoading }) {
 
       <div className="industrial-card no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase' }}>
-          VERIFIED SHIFT HANDOVER BRIEFING
+          OFFICIAL SHIFT HANDOVER REPORT
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button onClick={handleCopy} className="btn">
-            {copied ? '✓ Copied' : 'Copy Markdown'}
+            {copied ? '✓ Copied' : 'Copy Briefing Text'}
           </button>
 
           <button onClick={handleDownloadPdf} className="btn btn-primary">
-            Export Report PDF
+            Export Briefing PDF
           </button>
         </div>
       </div>

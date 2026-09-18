@@ -83,9 +83,12 @@ export function parseCsvToShiftPayload(text) {
   const maintenanceTasks = [];
   const operatorNotes = [];
 
-  // Check if Line 0 is a Tabular Header (e.g. contains 'shift_id,line_id' or 'target_units,actual_units')
+  // Check if Line 0 is a Tabular Header (must have at least 3 parts and include target/actual columns)
   const headerParts = lines[0].split(',').map(p => p.trim().replace(/^"|"$/g, '').toLowerCase());
-  const isTabularHeader = headerParts.includes('shift_id') || headerParts.includes('target_units') || headerParts.includes('actual_units') || headerParts.includes('target');
+  const isTabularHeader = headerParts.length >= 3 && (
+    (headerParts.includes('target') || headerParts.includes('target_units')) &&
+    (headerParts.includes('actual') || headerParts.includes('actual_units'))
+  );
 
   if (isTabularHeader && lines.length >= 2) {
     const dataParts = lines[1].split(',').map(p => p.trim().replace(/^"|"$/g, ''));
@@ -93,15 +96,15 @@ export function parseCsvToShiftPayload(text) {
       const val = dataParts[idx];
       if (!val) return;
       if (h.includes('shift_id')) shiftId = val;
-      else if (h.includes('line_id') || h === 'line') lineId = val;
-      else if (h.includes('date')) date = val;
-      else if (h.includes('shift_type')) shiftType = val;
-      else if (h.includes('target')) targetUnits = parseInt(val) || targetUnits;
-      else if (h.includes('actual')) actualUnits = parseInt(val) || actualUnits;
-      else if (h.includes('planned_downtime')) plannedDowntime = parseFloat(val) || plannedDowntime;
-      else if (h.includes('unplanned_downtime') || h.includes('downtime')) unplannedDowntime = parseFloat(val) || unplannedDowntime;
-      else if (h.includes('scrap')) scrapCount = parseInt(val) || scrapCount;
-      else if (h.includes('inspected')) totalInspected = parseInt(val) || totalInspected;
+      if (h.includes('line_id') || h === 'line') lineId = val;
+      if (h.includes('date')) date = val;
+      if (h.includes('shift_type')) shiftType = val;
+      if (h.includes('target')) targetUnits = parseInt(val) || targetUnits;
+      if (h.includes('actual')) actualUnits = parseInt(val) || actualUnits;
+      if (h.includes('unplanned') || h === 'downtime') unplannedDowntime = parseFloat(val) || unplannedDowntime;
+      else if (h.includes('planned')) plannedDowntime = parseFloat(val) || plannedDowntime;
+      if (h.includes('scrap')) scrapCount = parseInt(val) || scrapCount;
+      if (h.includes('inspected')) totalInspected = parseInt(val) || totalInspected;
     });
 
     for (let i = 2; i < lines.length; i++) {
@@ -116,14 +119,15 @@ export function parseCsvToShiftPayload(text) {
       const firstPartLower = parts[0].toLowerCase();
       const val = parts[1];
 
+      // 1. Shift Key Metadata
       if (firstPartLower.includes('shift_id')) shiftId = val;
       else if (firstPartLower.includes('line_id') || firstPartLower === 'line') lineId = val;
       else if (firstPartLower.includes('date')) date = val;
       else if (firstPartLower.includes('shift_type')) shiftType = val;
       else if (firstPartLower.includes('target')) targetUnits = parseInt(val) || targetUnits;
       else if (firstPartLower.includes('actual')) actualUnits = parseInt(val) || actualUnits;
-      else if (firstPartLower.includes('planned_downtime')) plannedDowntime = parseFloat(val) || plannedDowntime;
-      else if (firstPartLower.includes('unplanned_downtime') || firstPartLower.includes('downtime')) unplannedDowntime = parseFloat(val) || unplannedDowntime;
+      else if (firstPartLower.includes('unplanned') || firstPartLower === 'downtime') unplannedDowntime = parseFloat(val) || unplannedDowntime;
+      else if (firstPartLower.includes('planned')) plannedDowntime = parseFloat(val) || plannedDowntime;
       else if (firstPartLower.includes('scrap')) scrapCount = parseInt(val) || scrapCount;
       else if (firstPartLower.includes('inspected')) totalInspected = parseInt(val) || totalInspected;
       else {

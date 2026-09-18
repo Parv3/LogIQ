@@ -38,7 +38,8 @@ export default function HeaderBar({
     }
   };
 
-  const handleSelectSample = (keyOrPath) => {
+  const handleSelectSample = (e) => {
+    const keyOrPath = e.target.value;
     if (!keyOrPath) return;
     try {
       if (SAMPLE_CSVS[keyOrPath]) {
@@ -56,6 +57,7 @@ export default function HeaderBar({
     } catch (err) {
       console.error("Error loading sample CSV:", err);
     }
+    e.target.value = "";
   };
 
   const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || operatorName || 'P. Mishra';
@@ -87,7 +89,7 @@ export default function HeaderBar({
       <div className="header-actions-group no-print">
         {/* Sample CSV Scenario Selector */}
         <select
-          onChange={(e) => handleSelectSample(e.target.value)}
+          onChange={handleSelectSample}
           defaultValue=""
           className="btn"
           style={{

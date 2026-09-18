@@ -263,7 +263,7 @@ export default function App() {
       <main className="main-layout">
         {/* Left Column (35% width): Real-Time Telemetry + KPI Scorecard + Anomaly Feed */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <LiveTelemetryWidget />
+          <LiveTelemetryWidget sensorReadings={currentPayload?.sensor_readings} />
           <KpiScorecard kpis={processedData?.kpis} />
           <AnomalyFeed anomalies={processedData?.anomalies} />
         </div>

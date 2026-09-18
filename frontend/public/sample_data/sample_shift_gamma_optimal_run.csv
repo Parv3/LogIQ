@@ -1,0 +1,16 @@
+shift_id,SH-GAMMA-303
+line_id,Line 1 - High Precision CNC Machining
+date,2026-09-18
+shift_type,Shift C (Night 22:00 - 06:00)
+target_units,600
+actual_units,592
+planned_downtime,15
+unplanned_downtime,8
+scrap_count,3
+inspected,595
+Spindle Speed,23:00,3200.0,RPM
+Coolant Fluid Temp,01:30,42.1,°C
+Spindle Vibration,03:00,1.25,mm/s
+Hydraulic System Pressure,04:45,2100.0,PSI
+MNT-101,Routine Shift End Spindle Lubrication,COMPLETED
+Operator Note,Shift executed smoothly with optimal spindle thermal balance. 0 safety interlock alarms logged.

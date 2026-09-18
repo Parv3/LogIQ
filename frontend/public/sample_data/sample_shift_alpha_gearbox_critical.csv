@@ -1,0 +1,20 @@
+shift_id,SH-ALPHA-901
+line_id,Line 4 - Stator Assembly
+date,2026-09-18
+shift_type,Shift A (Morning 06:00 - 14:00)
+target_units,500
+actual_units,380
+planned_downtime,15
+unplanned_downtime,110
+scrap_count,22
+inspected,402
+Gearbox Oil Temp,08:30,94.2,°C
+Gearbox Oil Temp,09:15,98.4,°C
+Bearing Vibration,09:45,4.2,mm/s
+Hydraulic Line Pressure,10:30,2180.0,PSI
+Line Speed,11:00,1240.0,RPM
+Motor Drive Current,11:45,48.5,Amps
+ALM-902,Gearbox Overheat High Limit Exceeded (98.4°C),09:15,HIGH
+ALM-905,Main Motor Drive Overcurrent,11:45,MEDIUM
+MNT-108,Replace Gearbox Lubrication Pump Seals,PENDING_SIGN_OFF
+Operator Note,Severe thermal spike observed on gearbox housing after 09:00. Oil recirculation pump tripping repeatedly.

@@ -102,6 +102,20 @@ export default function HeaderBar({
     };
   };
 
+  const loadSampleCsv = async (csvPath) => {
+    if (!csvPath) return;
+    try {
+      const res = await fetch(csvPath);
+      if (res.ok) {
+        const text = await res.text();
+        const payload = parseCsvToShiftPayload(text);
+        onFileUpload(payload);
+      }
+    } catch (err) {
+      console.error("Failed to load sample CSV:", err);
+    }
+  };
+
   const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || operatorName || 'P. Mishra';
 
   return (
@@ -129,6 +143,29 @@ export default function HeaderBar({
       </div>
 
       <div className="header-actions-group no-print">
+        {/* Sample CSV Scenario Selector */}
+        <select
+          onChange={(e) => loadSampleCsv(e.target.value)}
+          defaultValue=""
+          className="btn"
+          style={{
+            background: 'var(--bg-card-sub)',
+            color: 'var(--text-primary)',
+            fontSize: '0.725rem',
+            padding: '0.4rem 0.5rem',
+            outline: 'none',
+            fontWeight: 700,
+            cursor: 'pointer',
+            border: '1px solid var(--border-color)'
+          }}
+          title="Select a pre-loaded sample CSV scenario"
+        >
+          <option value="" disabled>📊 DEMO DATA CSVs...</option>
+          <option value="/sample_data/sample_shift_alpha_gearbox_critical.csv">1. Critical Gearbox Overheat (CSV)</option>
+          <option value="/sample_data/sample_shift_beta_packaging_jam.csv">2. Conveyor Feeder Jam (CSV)</option>
+          <option value="/sample_data/sample_shift_gamma_optimal_run.csv">3. Optimal High-Speed Run (CSV)</option>
+        </select>
+
         <button onClick={onOpenCustomShift} className="btn" title="Create Custom Shift Log Form">
           <Sliders size={14} color="var(--accent-blue)" />
           <span className="btn-label-desktop">NEW SHIFT FORM</span>

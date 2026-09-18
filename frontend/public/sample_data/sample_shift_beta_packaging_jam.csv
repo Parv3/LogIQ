@@ -1,0 +1,18 @@
+shift_id,SH-BETA-702
+line_id,Line 2 - Automated Packaging & Palletizing
+date,2026-09-18
+shift_type,Shift B (Evening 14:00 - 22:00)
+target_units,650
+actual_units,540
+planned_downtime,20
+unplanned_downtime,65
+scrap_count,45
+inspected,585
+Conveyor Feeder Speed,15:00,850.0,RPM
+Pneumatic System Pressure,16:30,580.0,PSI
+Arm Actuator Temp,18:00,68.5,°C
+Optical Sensor Alignment,19:15,0.85,mm
+ALM-404,Feeder Infeed Photoeye Sensor Blocked,16:15,MEDIUM
+ALM-408,Pneumatic Pressure Drop Below Operating Limit,16:30,HIGH
+MNT-304,Realign Packaging Arm Photoeye & Calibrate Sensor,PENDING_SIGN_OFF
+Operator Note,High scrap rate caused by misaligned box guide rail. Operator adjusted guide width manually at 17:00.

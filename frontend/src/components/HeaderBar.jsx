@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Settings, Upload, Printer, Search, Sun, Moon, Database, User, LogOut, ShieldCheck } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
-export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, onExportPdf, isApiOnline }) {
+export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, onExportPdf, isApiOnline, currentUser, onOpenLogin, onSignOut }) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -90,6 +90,8 @@ export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, o
     };
   };
 
+  const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || operatorName || 'P. Mishra';
+
   return (
     <header className="header-bar">
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
@@ -109,7 +111,7 @@ export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, o
           </div>
           <div className="meta-item">
             <span className="meta-label">OP:</span>
-            <span className="meta-value">{operatorName || 'P. Mishra'}</span>
+            <span className="meta-value">{displayName}</span>
           </div>
         </div>
       </div>
@@ -120,6 +122,45 @@ export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, o
           <span>UPLOAD SHIFT LOG / CSV DATA</span>
           <input type="file" accept=".json,.csv" onChange={handleFileChange} style={{ display: 'none' }} />
         </label>
+
+        {currentUser ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                background: 'var(--bg-card-sub)',
+                padding: '0.4rem 0.65rem',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)'
+              }}
+            >
+              <ShieldCheck size={14} color="var(--status-success)" />
+              <span>{displayName}</span>
+            </div>
+            <button 
+              onClick={onSignOut} 
+              className="btn btn-secondary"
+              title="Sign Out of Shift Account"
+              style={{ padding: '0.45rem 0.6rem' }}
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+        ) : (
+          <button 
+            onClick={onOpenLogin} 
+            className="btn btn-primary"
+            style={{ fontWeight: 700, gap: '0.4rem' }}
+          >
+            <User size={14} />
+            <span>OPERATOR LOGIN / GOOGLE AUTH</span>
+          </button>
+        )}
 
         <ThemeToggle />
 

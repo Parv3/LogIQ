@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Any
 from app.models import ShiftPayload, ProcessedShiftResponse, GenerateReportResponse
+from app.chat_service import ChatQueryRequest, ChatQueryResponse, query_shift_assistant
 from app.scenarios import SCENARIOS, get_scenario_list
 from app.analytics import process_full_shift, compute_shift_kpis
 from app.llm_service import generate_handover_report
@@ -86,3 +87,12 @@ def compare_shifts(payloads: List[ShiftPayload]):
             "safety_alarms_count": len([a for a in p.alarms if a.is_safety_critical])
         })
     return comparison
+
+@app.post("/api/chat", response_model=ChatQueryResponse)
+def chat_with_assistant(request: ChatQueryRequest):
+    """
+    Sanitized & Guardrailed AI Operational Assistant Chatbot.
+    Protects against SQL Injection, Prompt Injection, and generic security threats.
+    """
+    return query_shift_assistant(request)
+

@@ -10,6 +10,7 @@ import UnresolvedTracker from './components/UnresolvedTracker';
 import FooterBar from './components/FooterBar';
 import DataPolicyModal from './components/DataPolicyModal';
 import TermsAndConditions from './components/TermsAndConditions';
+import ShiftChatbot from './components/ShiftChatbot';
 
 const API_BASE = 'http://localhost:8000/api';
 
@@ -161,6 +162,12 @@ export default function App() {
 
       <DataPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
       <TermsAndConditions isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+
+      {/* Floating Operational AI Chatbot */}
+      <ShiftChatbot
+        activeShiftId={currentPayload?.shift_id}
+        processedData={processedData}
+      />
     </div>
   );
 }

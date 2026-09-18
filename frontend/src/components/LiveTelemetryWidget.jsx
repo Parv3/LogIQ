@@ -45,7 +45,7 @@ export default function LiveTelemetryWidget() {
     }).join(' ');
 
     return (
-      <svg width={width} height={height} style={{ overflow: 'visible' }}>
+      <svg viewBox="0 0 140 36" style={{ width: '100%', maxWidth: '140px', height: '36px', overflow: 'visible' }}>
         <polyline
           fill="none"
           stroke={strokeColor}

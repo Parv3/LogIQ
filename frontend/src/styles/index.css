@@ -448,6 +448,17 @@ body {
     gap: 0.65rem;
   }
 
+  .header-actions-group select {
+    flex: 1 1 calc(50% - 0.5rem);
+    min-height: 36px;
+    font-size: 0.725rem;
+  }
+
+  .card-title {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
   .footer-bar {
     flex-direction: column;
     gap: 0.6rem;
@@ -470,8 +481,14 @@ body {
     padding: 0.35rem 0.5rem;
   }
 
-  .header-actions-group .btn {
+  .header-actions-group .btn,
+  .header-actions-group select {
     flex: 1 1 100%;
+    min-height: 38px;
+  }
+
+  .form-grid-pair {
+    grid-template-columns: 1fr !important;
   }
 
   .kpi-grid {

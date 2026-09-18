@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { ShieldCheck, LogIn, UserPlus, Lock, Mail, AlertCircle, X, CheckCircle, ArrowRight } from 'lucide-react';
+import { ShieldCheck, LogIn, Lock, Mail, AlertCircle, X, CheckCircle, ArrowRight } from 'lucide-react';
 import { 
   auth, 
   googleProvider, 
   signInWithPopup, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword 
+  signInWithEmailAndPassword
 } from '../firebase';
 
 export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = false }) {
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,14 +23,8 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = 
     setLoading(true);
 
     try {
-      let userCredential;
-      if (isSignUp) {
-        userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        setSuccessMsg("Operator account created successfully! Authorization granted.");
-      } else {
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-        setSuccessMsg("Shift Supervisor authenticated successfully.");
-      }
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      setSuccessMsg("Shift Supervisor authenticated successfully.");
 
       setTimeout(() => {
         if (onLoginSuccess) onLoginSuccess(userCredential.user);
@@ -43,10 +35,8 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = 
       let msg = err.message || "Authentication failed.";
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
         msg = "Invalid operator email or security credential.";
-      } else if (err.code === 'auth/email-already-in-use') {
-        msg = "Operator email is already registered in plant directory.";
-      } else if (err.code === 'auth/weak-password') {
-        msg = "Security constraint: Password must be at least 6 characters.";
+      } else if (err.code === 'auth/user-disabled') {
+        msg = "Operator account disabled. Contact system administrator.";
       }
       setError(msg);
     } finally {
@@ -109,7 +99,7 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = 
       zIndex: 100000,
       display: 'flex',
       alignItems: 'center',
-      justify: 'center',
+      justifyContent: 'center',
       padding: '1rem'
     }}>
       <div 
@@ -198,49 +188,21 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = 
           </div>
         )}
 
-        {/* Auth Mode Toggle */}
+        {/* Security Notice */}
         <div style={{
-          display: 'flex',
-          background: 'var(--bg-main)',
-          padding: '3px',
+          background: 'rgba(2, 132, 199, 0.08)',
+          border: '1px solid rgba(2, 132, 199, 0.25)',
+          color: 'var(--text-secondary)',
+          padding: '0.55rem 0.75rem',
           borderRadius: 'var(--radius)',
+          fontSize: '0.75rem',
           marginBottom: '1.25rem',
-          border: '1px solid var(--border-color)'
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
         }}>
-          <button
-            type="button"
-            onClick={() => { setIsSignUp(false); setError(''); }}
-            style={{
-              flex: 1,
-              padding: '0.45rem',
-              border: 'none',
-              background: !isSignUp ? 'var(--bg-card-sub)' : 'transparent',
-              color: !isSignUp ? 'var(--text-primary)' : 'var(--text-muted)',
-              fontWeight: !isSignUp ? 700 : 500,
-              borderRadius: 'var(--radius)',
-              fontSize: '0.8rem',
-              cursor: 'pointer'
-            }}
-          >
-            Operator Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => { setIsSignUp(true); setError(''); }}
-            style={{
-              flex: 1,
-              padding: '0.45rem',
-              border: 'none',
-              background: isSignUp ? 'var(--bg-card-sub)' : 'transparent',
-              color: isSignUp ? 'var(--text-primary)' : 'var(--text-muted)',
-              fontWeight: isSignUp ? 700 : 500,
-              borderRadius: 'var(--radius)',
-              fontSize: '0.8rem',
-              cursor: 'pointer'
-            }}
-          >
-            Register New Account
-          </button>
+          <Lock size={14} style={{ color: 'var(--accent-blue)', flexShrink: 0 }} />
+          <span>Restricted Portal: Access is limited to pre-approved operators. Self-registration is disabled.</span>
         </div>
 
         {/* Email / Password Form */}
@@ -311,8 +273,8 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = 
               marginTop: '0.25rem'
             }}
           >
-            {isSignUp ? <UserPlus size={16} /> : <LogIn size={16} />}
-            <span>{loading ? 'Authenticating...' : (isSignUp ? 'Create Supervisor Account' : 'Authorize Shift Access')}</span>
+            <LogIn size={16} />
+            <span>{loading ? 'Authenticating...' : 'Authorize Shift Access'}</span>
           </button>
         </form>
 

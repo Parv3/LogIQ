@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
-import ScenarioSelector from './components/ScenarioSelector';
-import KpiCards from './components/KpiCards';
-import SafetyBanner from './components/SafetyBanner';
-import SensorChart from './components/SensorChart';
-import EvidenceTable from './components/EvidenceTable';
-import HypothesisCards from './components/HypothesisCards';
-import ShiftSignOff from './components/ShiftSignOff';
-import MultiShiftView from './components/MultiShiftView';
-import ReportView from './components/ReportView';
-import FaqSection from './components/FaqSection';
-import ScrollProgress from './components/ScrollProgress';
-import BackToTop from './components/BackToTop';
+import HeaderBar from './components/HeaderBar';
+import KpiScorecard from './components/KpiScorecard';
+import AnomalyFeed from './components/AnomalyFeed';
+import PriorityZeroBanner from './components/PriorityZeroBanner';
+import HandoverNarrative from './components/HandoverNarrative';
+import EvidenceAnomalyTable from './components/EvidenceAnomalyTable';
+import RankedInvestigationChecklist from './components/RankedInvestigationChecklist';
+import UnresolvedTracker from './components/UnresolvedTracker';
+import FooterBar from './components/FooterBar';
 import DataPolicyModal from './components/DataPolicyModal';
 import TermsAndConditions from './components/TermsAndConditions';
 
@@ -20,13 +16,11 @@ const API_BASE = 'http://localhost:8000/api';
 export default function App() {
   const [isApiOnline, setIsApiOnline] = useState(false);
   const [scenarios, setScenarios] = useState([]);
-  const [activeScenarioId, setActiveScenarioId] = useState('');
-  const [activeTab, setActiveTab] = useState('briefing');
+  const [activeScenarioId, setActiveScenarioId] = useState('shift_gearbox_overheat');
 
   const [currentPayload, setCurrentPayload] = useState(null);
   const [processedData, setProcessedData] = useState(null);
   const [reportResponse, setReportResponse] = useState(null);
-  const [comparisonData, setComparisonData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
@@ -40,9 +34,7 @@ export default function App() {
   const fetchHealth = async () => {
     try {
       const res = await fetch(`${API_BASE}/health`);
-      if (res.ok) {
-        setIsApiOnline(true);
-      }
+      if (res.ok) setIsApiOnline(true);
     } catch (err) {
       setIsApiOnline(false);
     }
@@ -119,156 +111,53 @@ export default function App() {
     processShiftData(jsonPayload);
   };
 
-  const handleCarryForward = async (sourceId, targetId) => {
-    try {
-      const resSource = await fetch(`${API_BASE}/scenario/${sourceId}`);
-      const resTarget = await fetch(`${API_BASE}/scenario/${targetId}`);
-      if (resSource.ok && resTarget.ok) {
-        const payloadSource = await resSource.json();
-        const payloadTarget = await resTarget.json();
-
-        const carryRes = await fetch(`${API_BASE}/carry-forward`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ current_payload: payloadSource, next_payload: payloadTarget })
-        });
-        if (carryRes.ok) {
-          const updatedNext = await carryRes.json();
-          setCurrentPayload(updatedNext);
-          processShiftData(updatedNext);
-        }
-      }
-    } catch (err) {
-      console.error("Carry forward error:", err);
-    }
+  const handleExportPdf = () => {
+    window.print();
   };
-
-  useEffect(() => {
-    if (scenarios.length > 0) {
-      Promise.all(scenarios.map(s => fetch(`${API_BASE}/scenario/${s.id}`).then(r => r.json())))
-        .then(payloads => {
-          fetch(`${API_BASE}/compare-shifts`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payloads)
-          })
-            .then(r => r.json())
-            .then(comp => setComparisonData(comp));
-        });
-    }
-  }, [scenarios]);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <ScrollProgress />
-
-      <Header
+      <HeaderBar
+        shiftId={currentPayload?.shift_id || 'SH-402'}
+        date={currentPayload?.date || '18 SEP 2026'}
+        operatorName="P. Mishra"
+        onFileUpload={handleCustomFileUpload}
+        onExportPdf={handleExportPdf}
         isApiOnline={isApiOnline}
-        shiftId={currentPayload?.shift_id}
-        lineId={currentPayload?.line_id}
       />
 
-      <main className="dashboard-container">
-        {/* Scenario Loader Control Bar */}
-        <ScenarioSelector
-          scenarios={scenarios}
-          activeScenarioId={activeScenarioId}
-          onSelectScenario={loadScenario}
-          onFileUpload={handleCustomFileUpload}
-        />
-
-        {/* Safety Critical Alert Banner (Unsuppressed) */}
-        {processedData && (
-          <SafetyBanner
-            safetyAlarms={processedData.safety_alarms}
-            mandatoryMaintenance={processedData.mandatory_maintenance}
-          />
-        )}
-
-        {/* Deterministic Horizontal KPI Strip */}
-        <KpiCards kpis={processedData?.kpis} />
-
-        {/* Workspace Mode Bar */}
-        <div className="industrial-card no-print" style={{ padding: '0.5rem 1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <div style={{ display: 'flex', gap: '0.35rem' }}>
-              <button
-                onClick={() => setActiveTab('briefing')}
-                className={`btn ${activeTab === 'briefing' ? 'btn-primary' : ''}`}
-              >
-                Shift Briefing & Evidence
-              </button>
-
-              <button
-                onClick={() => setActiveTab('hypotheses')}
-                className={`btn ${activeTab === 'hypotheses' ? 'btn-primary' : ''}`}
-              >
-                Hypothesis Checklist
-              </button>
-
-              <button
-                onClick={() => setActiveTab('signoff')}
-                className={`btn ${activeTab === 'signoff' ? 'btn-primary' : ''}`}
-              >
-                Shift Sign-Off Log
-              </button>
-
-              <button
-                onClick={() => setActiveTab('multishift')}
-                className={`btn ${activeTab === 'multishift' ? 'btn-primary' : ''}`}
-              >
-                24H Multi-Shift Timeline
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.75rem' }}>
-              <button onClick={() => setIsPrivacyOpen(true)} className="btn" style={{ padding: '0.25rem 0.5rem' }}>
-                Privacy Policy
-              </button>
-              <button onClick={() => setIsTermsOpen(true)} className="btn" style={{ padding: '0.25rem 0.5rem' }}>
-                Terms & Conditions
-              </button>
-            </div>
-          </div>
+      <main className="main-layout">
+        {/* Left Column (35% width): KPI Scorecard + Anomaly Feed */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <KpiScorecard kpis={processedData?.kpis} />
+          <AnomalyFeed anomalies={processedData?.anomalies} />
         </div>
 
-        {/* Streamlined Workspace Views */}
-        {activeTab === 'briefing' && (
-          <div className="workspace-grid">
-            <ReportView reportResponse={reportResponse} isLoading={isLoading} />
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {processedData && <EvidenceTable evidence={processedData.evidence_table} />}
-              <SensorChart sensorReadings={currentPayload?.sensor_readings} />
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'hypotheses' && processedData && (
-          <HypothesisCards
-            anomalies={processedData.anomalies}
-            safetyAlarms={processedData.safety_alarms}
-            correlations={processedData.correlations}
+        {/* Right Column (65% width): Priority Banner + Handover Narrative + Evidence Table + Checklist + Tracker */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <PriorityZeroBanner
+            safetyAlarms={processedData?.safety_alarms}
+            maintenanceTasks={processedData?.mandatory_maintenance}
           />
-        )}
 
-        {activeTab === 'signoff' && currentPayload && (
-          <ShiftSignOff shiftId={currentPayload.shift_id} lineId={currentPayload.line_id} />
-        )}
-
-        {activeTab === 'multishift' && (
-          <MultiShiftView
-            scenarios={scenarios}
-            onCarryForward={handleCarryForward}
-            comparisonData={comparisonData}
+          <HandoverNarrative
+            reportMarkdown={reportResponse?.report_markdown}
+            shiftId={currentPayload?.shift_id}
+            variancePercent={processedData?.kpis?.variance_percent}
           />
-        )}
 
-        {/* Native Accordion FAQ Section */}
-        <FaqSection />
+          <EvidenceAnomalyTable evidenceTable={processedData?.evidence_table} />
+
+          <RankedInvestigationChecklist anomalies={processedData?.anomalies} />
+
+          <UnresolvedTracker unresolvedNotes={processedData?.unresolved_notes} />
+        </div>
       </main>
 
-      <BackToTop />
+      <FooterBar
+        onOpenPrivacy={() => setIsPrivacyOpen(true)}
+        onOpenTerms={() => setIsTermsOpen(true)}
+      />
 
       <DataPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
       <TermsAndConditions isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />

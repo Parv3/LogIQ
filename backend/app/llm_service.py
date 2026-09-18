@@ -48,7 +48,7 @@ def generate_handover_report(data: ProcessedShiftResponse) -> GenerateReportResp
             client = genai.Client(api_key=api_key)
             prompt = f"{SYSTEM_PROMPT}\n\nPROCESS DATA PAYLOAD:\n{data.model_dump_json()}"
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.6-flash",
                 contents=prompt
             )
             report_md = response.text

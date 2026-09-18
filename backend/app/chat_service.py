@@ -136,7 +136,7 @@ def query_shift_assistant(request: ChatQueryRequest) -> ChatQueryResponse:
             prompt = f"{CHAT_SYSTEM_PROMPT}\n\n{context_str}OPERATOR USER QUESTION:\n{clean_message}"
             
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.6-flash",
                 contents=prompt
             )
             reply_text = response.text

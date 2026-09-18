@@ -46,7 +46,11 @@ export default function ShiftChatbot({ activeShiftId, processedData }) {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const apiEndpoint = window.location.hostname === 'localhost'
+        ? 'http://localhost:8000/api/chat'
+        : '/api/chat';
+
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

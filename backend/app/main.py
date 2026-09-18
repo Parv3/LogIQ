@@ -28,6 +28,7 @@ def health_check():
         "status": "online",
         "system": "LogIQ Industrial Operations AI",
         "team": "Team G2 (Saksham Chaturvedi, Parv Mishra, Navya Mitta)",
+        "llm_provider": "Operational Analytics Engine",
         "guardrails_enabled": True
     }
 
@@ -38,7 +39,7 @@ def list_scenarios():
 @app.get("/api/scenario/{scenario_id}")
 def get_scenario(scenario_id: str):
     if scenario_id not in SCENARIOS:
-        raise HTTPException(status_code=44, detail="Scenario not found")
+        raise HTTPException(status_code=404, detail="Scenario not found")
     return SCENARIOS[scenario_id]
 
 @app.post("/api/process-shift", response_model=ProcessedShiftResponse)
@@ -51,7 +52,7 @@ def process_shift(payload: ShiftPayload):
 @app.post("/api/generate-report", response_model=GenerateReportResponse)
 def generate_report(payload: ShiftPayload):
     """
-    Full pipeline: Process shift data -> Invoke Gemini/Mock report generator -> Audit guardrails.
+    Full pipeline: Process shift data -> Invoke backend LLM engine -> Audit guardrails.
     """
     processed = process_full_shift(payload)
     return generate_handover_report(processed)

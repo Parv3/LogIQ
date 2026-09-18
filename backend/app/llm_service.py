@@ -93,7 +93,7 @@ During {data.shift_type}, **{data.line_id}** produced **{kpis.actual_units} unit
         if anom.is_anomaly:
             checklist += f"""{rank}. **Issue**: Thermal/Vibration Anomaly on `{anom.metric}`
    - **Verified Evidence**: Recorded {anom.value} (Normal Baseline: {anom.baseline_mean}, Z-Score: **+{anom.z_score}**).
-   - **HYPOTHESIS / Potential Area for Investigation**: High likelihood of lube flow starvation or bearing mechanical wear. Inspect lubrication pump & coupling before ramping line speed.
+   - **HYPOTHESIS / Potential Area for Investigation**: High statistical likelihood of lube flow starvation or bearing mechanical wear. Inspect lubrication pump & coupling before ramping line speed.
 
 """
             rank += 1

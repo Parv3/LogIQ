@@ -94,7 +94,7 @@ SCENARIOS: Dict[str, ShiftPayload] = {
                 note_id="N-002",
                 timestamp="10:00",
                 operator="M. Chen (Lead)",
-                text="Line tripped automatically due to ALM-902. Cooled down for 45 mins. Lubricant smelled burnt.",
+                text="Line tripped automatically following ALM-902. Cooled down for 45 mins. Lubricant smelled burnt.",
                 is_unresolved=True,
                 category="Downtime"
             ),

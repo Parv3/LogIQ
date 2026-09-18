@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert } from 'lucide-react';
 
-export default function CookieBanner() {
+export default function ConsentNotice() {
   const [accepted, setAccepted] = useState(true);
 
   useEffect(() => {
-    const consent = localStorage.getItem('logiq_cookie_consent');
+    const consent = localStorage.getItem('logiq_site_consent');
     if (!consent) {
       setAccepted(false);
     }
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('logiq_cookie_consent', 'true');
+    localStorage.setItem('logiq_site_consent', 'true');
     setAccepted(true);
   };
 
@@ -23,7 +23,7 @@ export default function CookieBanner() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem' }}>
         <ShieldAlert size={18} color="var(--accent-blue)" />
         <span>
-          LogIQ uses essential local storage for theme settings and shift session security. No third-party tracking cookies are used.
+          LogIQ uses essential local session storage for operational theme preferences. No tracking cookies are deployed.
         </span>
       </div>
       <div style={{ display: 'flex', gap: '0.5rem' }}>

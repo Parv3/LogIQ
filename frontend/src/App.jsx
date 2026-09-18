@@ -13,9 +13,9 @@ import ReportView from './components/ReportView';
 import FaqSection from './components/FaqSection';
 import ScrollProgress from './components/ScrollProgress';
 import BackToTop from './components/BackToTop';
-import CookieBanner from './components/CookieBanner';
+import ConsentNotice from './components/ConsentNotice';
 import FloatingContact from './components/FloatingContact';
-import PrivacyPolicy from './components/PrivacyPolicy';
+import DataPolicyModal from './components/DataPolicyModal';
 import TermsAndConditions from './components/TermsAndConditions';
 import { initUtmTracker } from './utils/utmTracker';
 import { Activity, Database, FileText, RefreshCw, Play, BarChart2, ShieldCheck, PenTool } from 'lucide-react';
@@ -169,7 +169,6 @@ export default function App() {
     }
   }, [scenarios]);
 
-  // Filter evidence and notes by search query if set
   const filteredEvidence = processedData?.evidence_table?.filter(e =>
     !searchQuery || e.evidence_proof.toLowerCase().includes(searchQuery.toLowerCase()) || e.metric_or_alarm.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -311,10 +310,10 @@ export default function App() {
       </main>
 
       <BackToTop />
-      <CookieBanner />
+      <ConsentNotice />
       <FloatingContact />
 
-      <PrivacyPolicy isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+      <DataPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
       <TermsAndConditions isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
     </div>
   );

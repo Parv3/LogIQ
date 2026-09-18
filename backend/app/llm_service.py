@@ -35,27 +35,50 @@ Safety Alarms & Mandatory Maintenance: Active safety alarms included `{alarms_st
 
     return summary
 
+def call_nvidia_llm(prompt: str, key: str) -> str:
+    import requests
+    url = "https://integrate.api.nvidia.com/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+    payload = {
+        "model": "nvidia/llama-3.1-nemotron-70b-instruct",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": LLM_TEMPERATURE,
+        "max_tokens": 1024
+    }
+    res = requests.post(url, headers=headers, json=payload, timeout=8)
+    if res.status_code == 200:
+        return res.json()["choices"][0]["message"]["content"]
+    raise Exception(f"NVIDIA API Error Status: {res.status_code}")
+
 def generate_handover_report(data: ProcessedShiftResponse) -> GenerateReportResponse:
     """
-    Invokes LLM API or fallback mock generator, then runs guardrail auditor.
+    Invokes LLM API (NVIDIA NIM or Gemini 3.6 Flash) or fallback mock generator.
     """
-    api_key = os.environ.get("GEMINI_API_KEY")
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    nvidia_key = os.environ.get("NVIDIA_API_KEY")
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
+    
     report_md = ""
 
-    if api_key:
+    if provider == "nvidia" and nvidia_key:
+        try:
+            prompt = f"{SYSTEM_PROMPT}\n\nPROCESS DATA PAYLOAD:\n{data.model_dump_json()}"
+            report_md = call_nvidia_llm(prompt, nvidia_key)
+        except Exception:
+            report_md = generate_mock_report(data)
+    elif gemini_key:
         try:
             from google import genai
-            client = genai.Client(api_key=api_key)
+            client = genai.Client(api_key=gemini_key)
             prompt = f"{SYSTEM_PROMPT}\n\nPROCESS DATA PAYLOAD:\n{data.model_dump_json()}"
             response = client.models.generate_content(
                 model="gemini-3.6-flash",
                 contents=prompt
             )
             report_md = response.text
-            # Ensure safety alarms and hypotheses keywords are present
             if data.safety_alarms and not any(a.alarm_id in report_md for a in data.safety_alarms):
                 report_md = generate_mock_report(data)
-        except Exception as e:
+        except Exception:
             report_md = generate_mock_report(data)
     else:
         report_md = generate_mock_report(data)

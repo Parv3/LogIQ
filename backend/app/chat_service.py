@@ -117,30 +117,48 @@ def query_shift_assistant(request: ChatQueryRequest) -> ChatQueryResponse:
             sources=[]
         )
 
-    api_key = os.environ.get("GEMINI_API_KEY")
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    nvidia_key = os.environ.get("NVIDIA_API_KEY")
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
+    
     reply_text = ""
     sources = []
 
     if request.processed_data:
         sources = [e.issue_id for e in request.processed_data.evidence_table[:4]]
 
-    if api_key:
+    context_str = ""
+    if request.processed_data:
+        context_str = f"SHIFT DATA CONTEXT:\n{request.processed_data.model_dump_json()}\n\n"
+    prompt = f"{CHAT_SYSTEM_PROMPT}\n\n{context_str}OPERATOR USER QUESTION:\n{clean_message}"
+
+    if provider == "nvidia" and nvidia_key:
+        try:
+            import requests
+            url = "https://integrate.api.nvidia.com/v1/chat/completions"
+            headers = {"Authorization": f"Bearer {nvidia_key}", "Content-Type": "application/json"}
+            payload = {
+                "model": "nvidia/llama-3.1-nemotron-70b-instruct",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.2
+            }
+            res = requests.post(url, headers=headers, json=payload, timeout=8)
+            if res.status_code == 200:
+                reply_text = res.json()["choices"][0]["message"]["content"]
+            else:
+                reply_text = generate_mock_chat_reply(clean_message, request.processed_data)
+        except Exception:
+            reply_text = generate_mock_chat_reply(clean_message, request.processed_data)
+    elif gemini_key:
         try:
             from google import genai
-            client = genai.Client(api_key=api_key)
-            
-            context_str = ""
-            if request.processed_data:
-                context_str = f"SHIFT DATA CONTEXT:\n{request.processed_data.model_dump_json()}\n\n"
-
-            prompt = f"{CHAT_SYSTEM_PROMPT}\n\n{context_str}OPERATOR USER QUESTION:\n{clean_message}"
-            
+            client = genai.Client(api_key=gemini_key)
             response = client.models.generate_content(
                 model="gemini-3.6-flash",
                 contents=prompt
             )
             reply_text = response.text
-        except Exception as e:
+        except Exception:
             reply_text = generate_mock_chat_reply(clean_message, request.processed_data)
     else:
         reply_text = generate_mock_chat_reply(clean_message, request.processed_data)

@@ -81,7 +81,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
-*Backend runs at `http://localhost:8000`.*
+*Backend runs at Render.*
 
 ### 2. Run Backend Pytest Suite
 ```bash
@@ -95,7 +95,7 @@ cd frontend
 npm install
 npm run dev
 ```
-*Frontend Command Center runs at `http://localhost:5173`.*
+*Frontend Command Center runs at `(https://logiq.parvmishra44.workers.dev/)`.*
 
 ---
 

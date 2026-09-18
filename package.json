@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "cd frontend && npm install && npm run build",
-    "deploy": "wrangler deploy"
+    "predeploy": "cd frontend && npm install && npm run build",
+    "deploy": "cd frontend && npm install && npm run build && wrangler deploy"
   }
 }

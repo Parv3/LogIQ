@@ -48,7 +48,7 @@ export default function App() {
         setIsLoginOpen(false);
       } else {
         setCurrentUser(null);
-        setIsLoginOpen(true);
+        setIsLoginOpen(false);
       }
     });
     return () => unsubscribe();

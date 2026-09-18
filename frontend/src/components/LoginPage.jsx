@@ -68,7 +68,11 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess }) {
       }, 1000);
     } catch (err) {
       console.error("Google Auth Error:", err);
-      setError(err.message || "Google Single-Sign-On failed.");
+      if (err.code === 'auth/unauthorized-domain') {
+        setError("Domain authorized check: Please add 'logiq.parvmishra44.workers.dev' under Firebase Console > Authentication > Settings > Authorized Domains.");
+      } else {
+        setError(err.message || "Google Single-Sign-On failed.");
+      }
     } finally {
       setLoading(false);
     }
@@ -345,7 +349,7 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess }) {
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
             ⚡ Fast Demo Operator Access
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
             <button
               onClick={() => handleDemoLogin('p.mishra@factory.io', 'P. Mishra (Supervisor)')}
               className="btn btn-secondary"
@@ -363,6 +367,22 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess }) {
               <span>Op: J. Vance</span>
             </button>
           </div>
+
+          <button
+            onClick={onClose}
+            className="btn"
+            style={{
+              width: '100%',
+              justifyContent: 'center',
+              fontSize: '0.75rem',
+              color: 'var(--text-secondary)',
+              background: 'transparent',
+              border: '1px dashed var(--border-color)',
+              padding: '0.4rem'
+            }}
+          >
+            <span>Continue in Guest Preview Mode →</span>
+          </button>
         </div>
       </div>
     </div>

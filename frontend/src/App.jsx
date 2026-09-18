@@ -12,6 +12,9 @@ import DataPolicyModal from './components/DataPolicyModal';
 import TermsAndConditions from './components/TermsAndConditions';
 import ShiftChatbot from './components/ShiftChatbot';
 import LoginPage from './components/LoginPage';
+import LiveTelemetryWidget from './components/LiveTelemetryWidget';
+import CustomShiftModal from './components/CustomShiftModal';
+import ShiftHistoryModal from './components/ShiftHistoryModal';
 import { auth, onAuthStateChanged, signOut } from './firebase';
 import { DEFAULT_PAYLOAD, processClientShift } from './data/defaultScenarios';
 import { isEmailAuthorized } from './config/authorizedUsers';
@@ -37,9 +40,23 @@ export default function App() {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isCustomShiftOpen, setIsCustomShiftOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
   const [currentUser, setCurrentUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [authError, setAuthError] = useState('');
+
+  const [shiftHistory, setShiftHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem('LOGIQ_SHIFT_HISTORY');
+      return saved ? JSON.parse(saved) : [
+        { payload: DEFAULT_PAYLOAD, kpis: DEFAULT_PROCESSED.kpis, timestamp: new Date().toISOString() }
+      ];
+    } catch (e) {
+      return [{ payload: DEFAULT_PAYLOAD, kpis: DEFAULT_PROCESSED.kpis, timestamp: new Date().toISOString() }];
+    }
+  });
 
   useEffect(() => {
     fetchHealth();
@@ -64,6 +81,24 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  const saveToHistoryArchive = (payload, kpis) => {
+    setShiftHistory(prev => {
+      const exists = prev.some(item => item.payload.shift_id === payload.shift_id);
+      let updated;
+      if (exists) {
+        updated = prev.map(item => item.payload.shift_id === payload.shift_id ? { payload, kpis, timestamp: new Date().toISOString() } : item);
+      } else {
+        updated = [{ payload, kpis, timestamp: new Date().toISOString() }, ...prev];
+      }
+      try {
+        localStorage.setItem('LOGIQ_SHIFT_HISTORY', JSON.stringify(updated.slice(0, 20)));
+      } catch (e) {
+        console.error("Failed to save shift history to localStorage", e);
+      }
+      return updated;
+    });
+  };
 
   const fetchHealth = async () => {
     try {
@@ -113,13 +148,18 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         setProcessedData(data);
+        saveToHistoryArchive(payload, data.kpis);
         generateReport(payload);
       } else {
-        setProcessedData(processClientShift(payload));
+        const clientData = processClientShift(payload);
+        setProcessedData(clientData);
+        saveToHistoryArchive(payload, clientData.kpis);
       }
     } catch (err) {
       console.error("Error processing shift data online, using client analytics engine:", err);
-      setProcessedData(processClientShift(payload));
+      const clientData = processClientShift(payload);
+      setProcessedData(clientData);
+      saveToHistoryArchive(payload, clientData.kpis);
     }
   };
 
@@ -146,6 +186,25 @@ export default function App() {
     setCurrentPayload(jsonPayload);
     setActiveScenarioId('custom_upload');
     processShiftData(jsonPayload);
+  };
+
+  const handleCustomShiftSave = (customPayload) => {
+    setCurrentPayload(customPayload);
+    setActiveScenarioId(customPayload.shift_id);
+    processShiftData(customPayload);
+  };
+
+  const handleLoadShiftFromHistory = (historicalPayload) => {
+    setCurrentPayload(historicalPayload);
+    setActiveScenarioId(historicalPayload.shift_id);
+    processShiftData(historicalPayload);
+  };
+
+  const handleClearHistory = () => {
+    setShiftHistory([]);
+    try {
+      localStorage.removeItem('LOGIQ_SHIFT_HISTORY');
+    } catch (e) {}
   };
 
   const handleExportPdf = () => {
@@ -176,11 +235,14 @@ export default function App() {
         currentUser={currentUser}
         onOpenLogin={() => setIsLoginOpen(true)}
         onSignOut={() => signOut(auth)}
+        onOpenCustomShift={() => setIsCustomShiftOpen(true)}
+        onOpenHistory={() => setIsHistoryOpen(true)}
       />
 
       <main className="main-layout">
-        {/* Left Column (35% width): KPI Scorecard + Anomaly Feed */}
+        {/* Left Column (35% width): Real-Time Telemetry + KPI Scorecard + Anomaly Feed */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <LiveTelemetryWidget />
           <KpiScorecard kpis={processedData?.kpis} />
           <AnomalyFeed anomalies={processedData?.anomalies} />
         </div>
@@ -214,11 +276,27 @@ export default function App() {
       <DataPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
       <TermsAndConditions isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
 
-      {/* Optional Firebase Shift Supervisor Authentication Modal */}
+      {/* Firebase Shift Supervisor Authentication Modal */}
       <LoginPage
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         onLoginSuccess={(user) => setCurrentUser(user)}
+      />
+
+      {/* Interactive Custom Shift Builder Modal */}
+      <CustomShiftModal
+        isOpen={isCustomShiftOpen}
+        onClose={() => setIsCustomShiftOpen(false)}
+        onSaveShift={handleCustomShiftSave}
+      />
+
+      {/* Multi-Shift History Archive Modal */}
+      <ShiftHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        historyList={shiftHistory}
+        onLoadShift={handleLoadShiftFromHistory}
+        onClearHistory={handleClearHistory}
       />
 
       {/* Floating Operational AI Chatbot */}

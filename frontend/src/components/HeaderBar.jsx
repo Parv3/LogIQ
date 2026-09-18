@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
-import { Settings, Upload, Printer, Search, Sun, Moon, Database, User, LogOut, ShieldCheck } from 'lucide-react';
+import { Settings, Upload, Printer, Search, Sun, Moon, Database, User, LogOut, ShieldCheck, Sliders, History } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
-export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, onExportPdf, isApiOnline, currentUser, onOpenLogin, onSignOut }) {
+export default function HeaderBar({ 
+  shiftId, 
+  date, 
+  operatorName, 
+  onFileUpload, 
+  onExportPdf, 
+  isApiOnline, 
+  currentUser, 
+  onOpenLogin, 
+  onSignOut,
+  onOpenCustomShift,
+  onOpenHistory
+}) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -117,9 +129,21 @@ export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, o
       </div>
 
       <div className="header-actions-group no-print">
+        <button onClick={onOpenCustomShift} className="btn" title="Create Custom Shift Log Form">
+          <Sliders size={14} color="var(--accent-blue)" />
+          <span className="btn-label-desktop">NEW SHIFT FORM</span>
+          <span className="btn-label-mobile">NEW FORM</span>
+        </button>
+
+        <button onClick={onOpenHistory} className="btn" title="View Shift Archive & History">
+          <History size={14} />
+          <span className="btn-label-desktop">SHIFT ARCHIVE</span>
+          <span className="btn-label-mobile">ARCHIVE</span>
+        </button>
+
         <label className="btn" style={{ cursor: 'pointer' }}>
           <Upload size={14} />
-          <span className="btn-label-desktop">UPLOAD SHIFT LOG / CSV DATA</span>
+          <span className="btn-label-desktop">UPLOAD SHIFT LOG / CSV</span>
           <span className="btn-label-mobile">UPLOAD</span>
           <input type="file" accept=".json,.csv" onChange={handleFileChange} style={{ display: 'none' }} />
         </label>
@@ -168,8 +192,8 @@ export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, o
 
         <button onClick={onExportPdf} className="btn" style={{ fontWeight: 700 }}>
           <Printer size={14} />
-          <span className="btn-label-desktop">EXPORT INCIDENT REPORT (PDF)</span>
-          <span className="btn-label-mobile">EXPORT REPORT</span>
+          <span className="btn-label-desktop">EXPORT REPORT (PDF)</span>
+          <span className="btn-label-mobile">EXPORT</span>
         </button>
       </div>
     </header>

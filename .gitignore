@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+backend/venv/
+backend/__pycache__/
+backend/app/__pycache__/
+backend/tests/__pycache__/
+.pytest_cache/
+
+# Build outputs
+frontend/dist/
+*.log
+
+# Environment & secrets
+.env
+.env.local

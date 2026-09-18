@@ -37,6 +37,7 @@ export default function App() {
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     fetchHealth();
@@ -48,8 +49,8 @@ export default function App() {
         setIsLoginOpen(false);
       } else {
         setCurrentUser(null);
-        setIsLoginOpen(false);
       }
+      setAuthChecked(true);
     });
     return () => unsubscribe();
   }, []);
@@ -140,6 +141,17 @@ export default function App() {
   const handleExportPdf = () => {
     window.print();
   };
+
+  // FORCED LOGIN GATE: Without login, no one can enter or view the dashboard
+  if (authChecked && !currentUser) {
+    return (
+      <LoginPage
+        isOpen={true}
+        isForced={true}
+        onLoginSuccess={(user) => setCurrentUser(user)}
+      />
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

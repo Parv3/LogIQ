@@ -8,7 +8,7 @@ import {
   createUserWithEmailAndPassword 
 } from '../firebase';
 
-export default function LoginPage({ isOpen, onClose, onLoginSuccess }) {
+export default function LoginPage({ isOpen, onClose, onLoginSuccess, isForced = false }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -125,18 +125,20 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess }) {
         }}
       >
         {/* Header Close Button */}
-        <button
-          onClick={onClose}
-          className="btn btn-secondary"
-          style={{
-            position: 'absolute',
-            top: '1rem',
-            right: '1rem',
-            padding: '0.25rem 0.5rem'
-          }}
-        >
-          <X size={16} />
-        </button>
+        {!isForced && (
+          <button
+            onClick={onClose}
+            className="btn btn-secondary"
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              right: '1rem',
+              padding: '0.25rem 0.5rem'
+            }}
+          >
+            <X size={16} />
+          </button>
+        )}
 
         {/* Title */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
@@ -368,21 +370,23 @@ export default function LoginPage({ isOpen, onClose, onLoginSuccess }) {
             </button>
           </div>
 
-          <button
-            onClick={onClose}
-            className="btn"
-            style={{
-              width: '100%',
-              justifyContent: 'center',
-              fontSize: '0.75rem',
-              color: 'var(--text-secondary)',
-              background: 'transparent',
-              border: '1px dashed var(--border-color)',
-              padding: '0.4rem'
-            }}
-          >
-            <span>Continue in Guest Preview Mode →</span>
-          </button>
+          {!isForced && (
+            <button
+              onClick={onClose}
+              className="btn"
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                fontSize: '0.75rem',
+                color: 'var(--text-secondary)',
+                background: 'transparent',
+                border: '1px dashed var(--border-color)',
+                padding: '0.4rem'
+              }}
+            >
+              <span>Continue in Guest Preview Mode →</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

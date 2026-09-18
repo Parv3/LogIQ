@@ -149,7 +149,6 @@ export default function App() {
         const data = await res.json();
         setProcessedData(data);
         saveToHistoryArchive(payload, data.kpis);
-        generateReport(payload);
       } else {
         const clientData = processClientShift(payload);
         setProcessedData(clientData);
@@ -161,6 +160,9 @@ export default function App() {
       setProcessedData(clientData);
       saveToHistoryArchive(payload, clientData.kpis);
     }
+    
+    // Always trigger narrative report update
+    generateReport(payload);
   };
 
   const generateReport = async (payload) => {
@@ -174,12 +176,31 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         setReportResponse(data);
+        setIsLoading(false);
+        return;
       }
     } catch (err) {
-      console.error("Error generating report:", err);
-    } finally {
-      setIsLoading(false);
+      console.error("Error generating report online, generating client executive narrative:", err);
     }
+
+    // Client-side dynamic markdown narrative generator fallback
+    const target = payload.target_units || 500;
+    const actual = payload.actual_units || 400;
+    const variance_units = actual - target;
+    const variance_percent = target > 0 ? ((variance_units / target) * 100).toFixed(1) : 0;
+
+    const alarmDetail = payload.alarms && payload.alarms.length > 0 
+      ? ` Active critical safety alarms: \`${payload.alarms.map(a => (a.alarm_id || 'ALM') + ': ' + (a.description || 'Alarm')).join('; ')}\`.` 
+      : ' All safety interlocks and machine pressure boundaries operated within normal baseline limits.';
+
+    const noteDetail = payload.operator_notes && payload.operator_notes.length > 0 
+      ? ` Operator Observation: "${typeof payload.operator_notes[0] === 'string' ? payload.operator_notes[0] : (payload.operator_notes[0].text || '')}".` 
+      : '';
+
+    const fallbackMarkdown = `During **${payload.shift_type || 'Shift A'}**, **${payload.line_id || 'Line 1'}** produced **${actual} units** against a target of **${target} units** (Variance: \`${variance_units} units, ${variance_percent}%\`). Total unplanned downtime reached **${payload.unplanned_downtime_minutes || 0} minutes**, with **${payload.scrap_count || 0} scrap units** logged.${alarmDetail}${noteDetail} Recommended **Hypotheses** for incoming shift handover verification.`;
+
+    setReportResponse({ report_markdown: fallbackMarkdown });
+    setIsLoading(false);
   };
 
   const handleCustomFileUpload = (jsonPayload) => {

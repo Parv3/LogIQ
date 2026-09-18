@@ -60,20 +60,56 @@ export default function HeaderBar({
       const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
       if (parts.length < 2) return;
 
-      const key = parts[0].toLowerCase();
+      const firstPartUpper = parts[0].toUpperCase();
+      const firstPartLower = parts[0].toLowerCase();
       const val = parts[1];
 
-      if (key.includes('shift_id')) shiftId = val;
-      else if (key.includes('line_id') || key.includes('line')) lineId = val;
-      else if (key.includes('date')) date = val;
-      else if (key.includes('shift_type')) shiftType = val;
-      else if (key.includes('target')) targetUnits = parseInt(val) || targetUnits;
-      else if (key.includes('actual')) actualUnits = parseInt(val) || actualUnits;
-      else if (key.includes('planned_downtime')) plannedDowntime = parseFloat(val) || plannedDowntime;
-      else if (key.includes('unplanned_downtime') || key.includes('downtime')) unplannedDowntime = parseFloat(val) || unplannedDowntime;
-      else if (key.includes('scrap')) scrapCount = parseInt(val) || scrapCount;
-      else if (key.includes('inspected')) totalInspected = parseInt(val) || totalInspected;
-      else if (parts.length >= 4) {
+      // 1. Alarms (e.g. ALM-902,Gearbox Overheat...,09:15,HIGH)
+      if (firstPartUpper.startsWith('ALM-') || firstPartUpper.includes('ALARM')) {
+        alarms.push({
+          alarm_id: parts[0],
+          description: parts[1] || "Critical Operational Alarm",
+          timestamp: parts[2] || "09:00",
+          severity: (parts[3] || "HIGH").toUpperCase(),
+          is_safety_critical: true,
+          resolved: false
+        });
+      }
+      // 2. Maintenance Tasks (e.g. MNT-108,Replace Lubrication Pump Seals,PENDING_SIGN_OFF)
+      else if (firstPartUpper.startsWith('MNT-') || firstPartUpper.includes('MAINTENANCE')) {
+        maintenanceTasks.push({
+          task_id: parts[0],
+          component: parts[1] ? parts[1].split(' ')[0] : "Equipment",
+          priority: "MANDATORY",
+          description: parts[1] || "Mandatory Equipment Sign-off",
+          is_mandatory: true,
+          status: (parts[2] || "PENDING_SIGN_OFF").toUpperCase()
+        });
+      }
+      // 3. Operator Notes (e.g. Operator Note,Severe thermal spike...)
+      else if (firstPartLower.includes('note')) {
+        operatorNotes.push({
+          note_id: `N-00${operatorNotes.length + 1}`,
+          timestamp: "12:00",
+          operator: "Shift Supervisor",
+          text: parts[1] || parts[0],
+          is_unresolved: true,
+          category: "Operator Observation"
+        });
+      }
+      // 4. Shift Key Metadata
+      else if (firstPartLower.includes('shift_id')) shiftId = val;
+      else if (firstPartLower.includes('line_id') || firstPartLower === 'line') lineId = val;
+      else if (firstPartLower.includes('date')) date = val;
+      else if (firstPartLower.includes('shift_type')) shiftType = val;
+      else if (firstPartLower.includes('target')) targetUnits = parseInt(val) || targetUnits;
+      else if (firstPartLower.includes('actual')) actualUnits = parseInt(val) || actualUnits;
+      else if (firstPartLower.includes('planned_downtime')) plannedDowntime = parseFloat(val) || plannedDowntime;
+      else if (firstPartLower.includes('unplanned_downtime') || firstPartLower.includes('downtime')) unplannedDowntime = parseFloat(val) || unplannedDowntime;
+      else if (firstPartLower.includes('scrap')) scrapCount = parseInt(val) || scrapCount;
+      else if (firstPartLower.includes('inspected')) totalInspected = parseInt(val) || totalInspected;
+      // 5. Sensor readings (e.g. Gearbox Oil Temp,09:15,98.4,°C)
+      else if (parts.length >= 3 && !isNaN(parseFloat(parts[2]))) {
         sensorReadings.push({
           metric: parts[0],
           timestamp: parts[1] || "08:00",
@@ -93,7 +129,7 @@ export default function HeaderBar({
       planned_downtime_minutes: plannedDowntime,
       unplanned_downtime_minutes: unplannedDowntime,
       scrap_count: scrapCount,
-      total_inspected: totalInspected,
+      total_inspected: Math.max(actualUnits + scrapCount, totalInspected),
       operating_time_minutes: 480.0,
       sensor_readings: sensorReadings,
       alarms: alarms,

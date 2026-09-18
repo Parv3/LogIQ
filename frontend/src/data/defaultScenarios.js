@@ -123,9 +123,35 @@ export function processClientShift(payload) {
     };
   });
 
-  const safety_alarms = (payload.alarms || []).filter(a => a.is_safety_critical || a.severity === 'CRITICAL');
-  const mandatory_maintenance = (payload.maintenance_tasks || []).filter(m => m.is_mandatory || m.priority === 'MANDATORY');
-  const unresolved_notes = (payload.operator_notes || []).filter(n => n.is_unresolved);
+  const safety_alarms = (payload.alarms || []).filter(a => 
+    a.is_safety_critical || 
+    a.severity === 'CRITICAL' || 
+    a.severity === 'HIGH' || 
+    a.severity === 'MEDIUM' || 
+    (a.alarm_id && a.alarm_id.startsWith('ALM-'))
+  );
+
+  const mandatory_maintenance = (payload.maintenance_tasks || []).filter(m => 
+    m.is_mandatory || 
+    m.priority === 'MANDATORY' || 
+    m.status === 'PENDING_SIGN_OFF' || 
+    m.status === 'UNRESOLVED' || 
+    (m.task_id && m.task_id.startsWith('MNT-'))
+  );
+
+  const unresolved_notes = (payload.operator_notes || []).map((n, idx) => {
+    if (typeof n === 'string') {
+      return {
+        note_id: `N-00${idx + 1}`,
+        timestamp: "12:00",
+        operator: "Shift Supervisor",
+        text: n,
+        is_unresolved: true,
+        category: "Shift Handover Note"
+      };
+    }
+    return n;
+  }).filter(n => n && (n.is_unresolved || n.text));
 
   const evidence_table = [];
   let idx = 1;

@@ -11,17 +11,24 @@ import FooterBar from './components/FooterBar';
 import DataPolicyModal from './components/DataPolicyModal';
 import TermsAndConditions from './components/TermsAndConditions';
 import ShiftChatbot from './components/ShiftChatbot';
+import { DEFAULT_PAYLOAD, processClientShift } from './data/defaultScenarios';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:8000/api'
+  : '/api';
+
+const DEFAULT_PROCESSED = processClientShift(DEFAULT_PAYLOAD);
 
 export default function App() {
   const [isApiOnline, setIsApiOnline] = useState(false);
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState('shift_gearbox_overheat');
 
-  const [currentPayload, setCurrentPayload] = useState(null);
-  const [processedData, setProcessedData] = useState(null);
-  const [reportResponse, setReportResponse] = useState(null);
+  const [currentPayload, setCurrentPayload] = useState(DEFAULT_PAYLOAD);
+  const [processedData, setProcessedData] = useState(DEFAULT_PROCESSED);
+  const [reportResponse, setReportResponse] = useState({
+    report_markdown: `During **Shift A (Morning 06:00 - 14:00)**, **Line 4 - Stator Assembly** produced **415 units** against a target of **500 units** (Variance: -85 units, -17%). Total shift downtime reached **100 minutes**, yielding an overall OEE of **71.2%**. Active critical safety alarm: \`ALM-902: Gearbox Overheat High Limit Exceeded (98.4°C)\`. Mandatory maintenance task \`MNT-108\` pending sign-off. Recommended **Hypotheses** for incoming shift investigation.`
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
@@ -81,9 +88,12 @@ export default function App() {
         const data = await res.json();
         setProcessedData(data);
         generateReport(payload);
+      } else {
+        setProcessedData(processClientShift(payload));
       }
     } catch (err) {
-      console.error("Error processing shift data:", err);
+      console.error("Error processing shift data online, using client analytics engine:", err);
+      setProcessedData(processClientShift(payload));
     }
   };
 

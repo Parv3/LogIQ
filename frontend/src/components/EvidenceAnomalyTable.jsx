@@ -1,43 +1,57 @@
 import React from 'react';
 
 export default function EvidenceAnomalyTable({ evidenceTable }) {
-  const defaultRows = [
-    { time: '14:02 UTC', source: 'Machine 3', desc: 'Temperature Spike (Active)', severity: 'High' }
-  ];
-
-  const rows = evidenceTable && evidenceTable.length > 0 ? evidenceTable.map(e => ({
-    time: '14:02 UTC',
-    source: e.metric_or_alarm || 'Machine 3',
-    desc: e.evidence_proof || 'Temperature Spike (Active)',
-    severity: e.category.includes('SAFETY') ? 'High' : 'Med'
-  })) : defaultRows;
+  if (!evidenceTable || evidenceTable.length === 0) {
+    return (
+      <div className="industrial-card">
+        <div className="card-title">
+          <span>3. EVIDENCE & ANOMALY TABLE</span>
+        </div>
+        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          No evidence items recorded. Nominal operation across all components.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="industrial-card">
       <div className="card-title">
-        <span>EVIDENCE & ANOMALY TABLE</span>
+        <span>3. EVIDENCE & ANOMALY TABLE</span>
+        <span className="badge badge-info">{evidenceTable.length} Verified Entries</span>
       </div>
 
       <div className="table-container">
         <table className="industrial-table">
           <thead>
             <tr>
-              <th>Time</th>
+              <th>Issue ID</th>
+              <th>Category</th>
+              <th>Metric / Alarm</th>
+              <th>Evidence & Proof</th>
               <th>Source</th>
-              <th>Description</th>
-              <th>Severity</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
+            {evidenceTable.map((row, i) => (
               <tr key={i}>
-                <td style={{ fontFamily: 'var(--font-mono)' }}>{row.time}</td>
-                <td style={{ fontWeight: 600 }}>{row.source}</td>
-                <td>{row.desc}</td>
+                <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-blue)', fontWeight: 700 }}>
+                  {row.issue_id}
+                </td>
                 <td>
-                  <span className={`badge ${row.severity === 'High' ? 'badge-high' : 'badge-med'}`}>
-                    {row.severity}
+                  <span className={`badge ${
+                    row.category.includes('SAFETY') ? 'badge-high' : 
+                    row.category.includes('ANOMALY') ? 'badge-med' : 'badge-low'
+                  }`}>
+                    {row.category}
                   </span>
+                </td>
+                <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                  {row.metric_or_alarm}
+                </td>
+                <td style={{ fontSize: '0.8rem' }}>{row.evidence_proof}</td>
+                <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.725rem' }}>
+                  {row.source_type}
                 </td>
               </tr>
             ))}

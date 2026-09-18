@@ -1,26 +1,63 @@
 import React, { useState } from 'react';
 
-export default function RankedInvestigationChecklist({ anomalies }) {
+export default function RankedInvestigationChecklist({ anomalies, safetyAlarms }) {
   const [checkedItems, setCheckedItems] = useState({});
 
   const toggleCheck = (idx) => {
     setCheckedItems(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
-  const defaultList = [
-    { text: '1. Investigate Machine 3 (Temp Spike)', hypoth: 'Cooling fault', evidence: 'Log DT-402' },
-    { text: '2. Check Conveyor B (Motor Load)', hypoth: 'Belt wear', evidence: 'Log MN-13:15' },
-    { text: '3. Address Machine 1 (Low Output)', hypoth: 'Calib. error', evidence: 'Log PRD-1145' }
-  ];
+  const hypotheses = [];
+  let idCounter = 1;
+
+  if (anomalies) {
+    anomalies.forEach((anom) => {
+      if (anom.is_anomaly) {
+        hypotheses.push({
+          id: idCounter,
+          text: `Investigate ${anom.metric} anomaly`,
+          hypoth: 'Lube starvation or bearing mechanical wear',
+          evidence: `Recorded ${anom.value} vs Normal ${anom.baseline_mean} (Z-Score: +${anom.z_score})`
+        });
+        idCounter++;
+      }
+    });
+  }
+
+  if (safetyAlarms) {
+    safetyAlarms.forEach((a) => {
+      hypotheses.push({
+        id: idCounter,
+        text: `Address Safety Alarm [${a.alarm_id}]`,
+        hypoth: 'Hydraulic pressure surge or solenoid valve seating check',
+        evidence: `Alarm log: ${a.description} at ${a.timestamp}`
+      });
+      idCounter++;
+    });
+  }
+
+  if (hypotheses.length === 0) {
+    hypotheses.push({
+      id: 1,
+      text: 'Routine Machine Inspection',
+      hypoth: 'Standard preventive maintenance cycle',
+      evidence: 'All metrics within nominal Z-score bounds'
+    });
+  }
 
   return (
     <div className="industrial-card">
       <div className="card-title">
-        <span>RANKED INVESTIGATION CHECKLIST</span>
+        <span>4. RANKED INVESTIGATION CHECKLIST (HYPOTHESES)</span>
+        <span className="badge badge-warning">STRICTLY LABELED HYPOTHESES</span>
+      </div>
+
+      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
+        [IMPORTANT] Operational Guardrail Note: The following items are explicitly labeled as <strong>Hypotheses</strong> for incoming shift investigation.
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {defaultList.map((item, i) => (
+        {hypotheses.map((item, i) => (
           <div key={i} className="checklist-item">
             <input
               type="checkbox"
@@ -29,9 +66,8 @@ export default function RankedInvestigationChecklist({ anomalies }) {
               style={{ marginTop: '2px', cursor: 'pointer' }}
             />
             <div style={{ flex: 1 }}>
-              <span className="cite">[cite: 1] </span>
-              <span style={{ fontWeight: 600 }}>{item.text}<sup>1</sup></span>
-              <span style={{ color: 'var(--text-muted)' }}> | Hypoth: {item.hypoth}<sup>1</sup> | Evidence: {item.evidence}</span>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{i + 1}. {item.text}</span>
+              <span style={{ color: 'var(--text-secondary)' }}> | Hypoth: {item.hypoth} | Evidence: {item.evidence}</span>
               <span className="badge-hypothesis">[SYSTEM HYPOTHESIS]</span>
             </div>
           </div>

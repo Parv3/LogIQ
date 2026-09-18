@@ -139,7 +139,7 @@ export default function ShiftChatbot({ activeShiftId, processedData }) {
       {/* Floating Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="btn btn-primary no-print"
+        className="btn btn-primary chatbot-trigger-btn no-print"
         style={{
           position: 'fixed',
           bottom: '1.5rem',
@@ -173,7 +173,7 @@ export default function ShiftChatbot({ activeShiftId, processedData }) {
       {/* Floating Drawer / Side Panel */}
       {isOpen && (
         <div
-          className="industrial-card no-print"
+          className="industrial-card chatbot-drawer no-print"
           style={{
             position: 'fixed',
             bottom: '5.2rem',

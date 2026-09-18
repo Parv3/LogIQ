@@ -94,7 +94,7 @@ export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, o
 
   return (
     <header className="header-bar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+      <div className="header-left-group">
         <div className="brand-logo">
           <Settings size={20} color="var(--text-secondary)" />
           <span>LOGIQ</span>
@@ -116,10 +116,11 @@ export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, o
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }} className="no-print">
+      <div className="header-actions-group no-print">
         <label className="btn" style={{ cursor: 'pointer' }}>
           <Upload size={14} />
-          <span>UPLOAD SHIFT LOG / CSV DATA</span>
+          <span className="btn-label-desktop">UPLOAD SHIFT LOG / CSV DATA</span>
+          <span className="btn-label-mobile">UPLOAD</span>
           <input type="file" accept=".json,.csv" onChange={handleFileChange} style={{ display: 'none' }} />
         </label>
 
@@ -158,7 +159,8 @@ export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, o
             style={{ fontWeight: 700, gap: '0.4rem' }}
           >
             <User size={14} />
-            <span>OPERATOR LOGIN / GOOGLE AUTH</span>
+            <span className="btn-label-desktop">OPERATOR LOGIN / GOOGLE AUTH</span>
+            <span className="btn-label-mobile">LOGIN</span>
           </button>
         )}
 
@@ -166,7 +168,8 @@ export default function HeaderBar({ shiftId, date, operatorName, onFileUpload, o
 
         <button onClick={onExportPdf} className="btn" style={{ fontWeight: 700 }}>
           <Printer size={14} />
-          <span>EXPORT INCIDENT REPORT (PDF)</span>
+          <span className="btn-label-desktop">EXPORT INCIDENT REPORT (PDF)</span>
+          <span className="btn-label-mobile">EXPORT REPORT</span>
         </button>
       </div>
     </header>

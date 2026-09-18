@@ -45,8 +45,10 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUser(user);
+        setIsLoginOpen(false);
       } else {
         setCurrentUser(null);
+        setIsLoginOpen(true);
       }
     });
     return () => unsubscribe();

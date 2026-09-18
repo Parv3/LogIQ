@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, ShieldCheck, Sparkles, AlertTriangle, RefreshCw } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 export default function ShiftChatbot({ activeShiftId, processedData }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -94,23 +95,23 @@ export default function ShiftChatbot({ activeShiftId, processedData }) {
     const q = (queryText || '').toLowerCase();
     
     if (!data) {
-      return "LogIQ Assistant online. Shift data is currently loading. Select a scenario from the top panel to inspect operational metrics.";
+      return "**LogIQ Assistant Online**\n\nShift data is currently loading. Select a scenario from the top panel to inspect operational metrics.";
     }
 
-    const { kpis, anomalies, safety_alarms, mandatory_maintenance, evidence_table } = data;
+    const { kpis, anomalies, safety_alarms, mandatory_maintenance } = data;
 
     if (q.includes('maintenance') || q.includes('task') || q.includes('unresolved')) {
       if (mandatory_maintenance && mandatory_maintenance.length > 0) {
-        const items = mandatory_maintenance.map(m => `• **[${m.task_id || 'TASK'}] ${m.component || 'Component'}**: ${m.description} *(Status: ${m.status})*`).join('\n');
-        return `**Mandatory Maintenance Requirements (${mandatory_maintenance.length})**:\n${items}\n\n*Action Required*: Sign off maintenance work orders prior to shift handover authorization.`;
+        const items = mandatory_maintenance.map(m => `- **[${m.task_id || 'TASK'}] ${m.component || 'Component'}**: ${m.description} *(Status: ${m.status})*`).join('\n');
+        return `**Mandatory Maintenance Requirements (${mandatory_maintenance.length})**:\n\n${items}\n\n*Action Required*: Sign off maintenance work orders prior to shift handover authorization.`;
       }
       return "No mandatory maintenance tasks pending for this shift.";
     }
 
     if (q.includes('alarm') || q.includes('safety') || q.includes('critical')) {
       if (safety_alarms && safety_alarms.length > 0) {
-        const items = safety_alarms.map(a => `• **[${a.alarm_id}] ${a.description}** at ${a.timestamp}`).join('\n');
-        return `**Active Critical Safety Alarms (${safety_alarms.length})**:\n${items}\n\n*Priority Zero Rule*: Do NOT suppress safety interlocks under any operational override condition.`;
+        const items = safety_alarms.map(a => `- **[${a.alarm_id}] ${a.description}** at ${a.timestamp}`).join('\n');
+        return `**Active Critical Safety Alarms (${safety_alarms.length})**:\n\n${items}\n\n**Priority Zero Rule**: Do NOT suppress safety interlocks under any operational override condition.`;
       }
       return "All safety interlocks and machine pressure boundaries are operating within normal limits. 0 critical alarms active.";
     }
@@ -118,19 +119,19 @@ export default function ShiftChatbot({ activeShiftId, processedData }) {
     if (q.includes('anomaly') || q.includes('sensor') || q.includes('temp') || q.includes('vibration')) {
       const flagged = (anomalies || []).filter(a => a.is_anomaly);
       if (flagged.length > 0) {
-        const items = flagged.map(a => `• **${a.metric}**: Peak **${a.value}** (Baseline: ${a.baseline_mean}, Z-Score: +${a.z_score}) - ${a.status}`).join('\n');
-        return `**Statistical Sensor Anomalies Flagged (|Z| > 2.5)**:\n${items}\n\n*Investigation Hypothesis*: Review evidence table correlation matrix for thermal spikes and lubrication pump cavitation.`;
+        const items = flagged.map(a => `- **${a.metric}**: Peak **${a.value}** (Baseline: ${a.baseline_mean}, Z-Score: \`+${a.z_score}\`) — *${a.status}*`).join('\n');
+        return `**Statistical Sensor Anomalies Flagged (|Z| > 2.5)**:\n\n${items}\n\n*Investigation Hypothesis*: Review evidence table correlation matrix for thermal spikes and lubrication pump cavitation.`;
       }
       return "All sensor time-series metrics (bearing temp, line speed, vibration) are within normal baseline statistical bounds (|Z| < 2.5).";
     }
 
     if (q.includes('kpi') || q.includes('target') || q.includes('actual') || q.includes('oee') || q.includes('downtime')) {
       if (kpis) {
-        return `**Shift ${data.shift_id || 'ACTIVE'} Production KPI Briefing**:\n• **Target vs Actual**: ${kpis.actual_units} / ${kpis.target_units} units (Variance: ${kpis.variance_units} units, ${kpis.variance_percent}%)\n• **OEE**: ${kpis.oee_percent}%\n• **Total Downtime**: ${kpis.total_downtime_minutes} mins\n• **Scrap Rate**: ${kpis.scrap_rate_percent}%`;
+        return `**Shift ${data.shift_id || 'ACTIVE'} Production KPI Briefing**:\n\n- **Target vs Actual**: **${kpis.actual_units}** / **${kpis.target_units}** units (Variance: \`${kpis.variance_units} units, ${kpis.variance_percent}%\`)\n- **OEE Overall**: **${kpis.oee_percent}%**\n- **Total Downtime**: **${kpis.total_downtime_minutes} mins**\n- **Scrap Rate**: **${kpis.scrap_rate_percent}%**`;
       }
     }
 
-    return `**LogIQ Operational Briefing (${data.shift_id || 'Active Shift'})**:\nProduced **${kpis?.actual_units || 0} units** against **${kpis?.target_units || 0} target** with **${kpis?.total_downtime_minutes || 0} mins** total downtime. Active safety alarms: ${safety_alarms?.length || 0}, Mandatory maintenance tasks: ${mandatory_maintenance?.length || 0}.`;
+    return `**LogIQ Operational Briefing (${data.shift_id || 'Active Shift'})**:\n\nProduced **${kpis?.actual_units || 0} units** against **${kpis?.target_units || 0} target** with **${kpis?.total_downtime_minutes || 0} mins** total downtime. Active safety alarms: **${safety_alarms?.length || 0}**, Mandatory maintenance tasks: **${mandatory_maintenance?.length || 0}**.`;
   }
 
   return (
@@ -300,7 +301,9 @@ export default function ShiftChatbot({ activeShiftId, processedData }) {
                     whiteSpace: 'pre-wrap'
                   }}
                 >
-                  {msg.content}
+                  <ReactMarkdown className="markdown-content">
+                    {msg.content}
+                  </ReactMarkdown>
 
                   {msg.sources && msg.sources.length > 0 && (
                     <div style={{

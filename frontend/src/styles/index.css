@@ -306,3 +306,55 @@ body {
   body { background: #FFFFFF !important; color: #000000 !important; }
   .industrial-card { border: 1px solid #000000 !important; background: #FFFFFF !important; color: #000000 !important; }
 }
+
+/* High-Resolution Markdown Formatting for AI Chatbot */
+.markdown-content {
+  font-size: 0.825rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+.markdown-content p {
+  margin-bottom: 0.4rem;
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.markdown-content ul, .markdown-content ol {
+  margin: 0.35rem 0 0.5rem 1.1rem;
+  padding: 0;
+}
+
+.markdown-content li {
+  margin-bottom: 0.3rem;
+  line-height: 1.45;
+}
+
+.markdown-content code {
+  font-family: var(--font-mono);
+  background: rgba(2, 132, 199, 0.15);
+  color: var(--accent-blue);
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4 {
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0.4rem 0 0.3rem 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+

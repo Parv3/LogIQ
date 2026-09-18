@@ -11,13 +11,11 @@ import FooterBar from './components/FooterBar';
 import DataPolicyModal from './components/DataPolicyModal';
 import TermsAndConditions from './components/TermsAndConditions';
 import ShiftChatbot from './components/ShiftChatbot';
-import LoginPage from './components/LoginPage';
-import { auth, onAuthStateChanged, signOut } from './firebase';
 import { DEFAULT_PAYLOAD, processClientShift } from './data/defaultScenarios';
 
 const API_BASE = window.location.hostname === 'localhost'
   ? 'http://localhost:8000/api'
-  : '/api';
+  : 'https://logiq-backend.onrender.com/api';
 
 const DEFAULT_PROCESSED = processClientShift(DEFAULT_PAYLOAD);
 
@@ -35,23 +33,10 @@ export default function App() {
 
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     fetchHealth();
     fetchScenarios();
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUser(user);
-        setIsLoginOpen(false);
-      } else {
-        setCurrentUser(null);
-        setIsLoginOpen(false);
-      }
-    });
-    return () => unsubscribe();
   }, []);
 
   const fetchHealth = async () => {
@@ -150,9 +135,6 @@ export default function App() {
         onFileUpload={handleCustomFileUpload}
         onExportPdf={handleExportPdf}
         isApiOnline={isApiOnline}
-        currentUser={currentUser}
-        onOpenLogin={() => setIsLoginOpen(true)}
-        onSignOut={() => signOut(auth)}
       />
 
       <main className="main-layout">
@@ -191,12 +173,7 @@ export default function App() {
       <DataPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
       <TermsAndConditions isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
 
-      {/* Firebase Shift Supervisor Authentication Modal */}
-      <LoginPage
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onLoginSuccess={(user) => setCurrentUser(user)}
-      />
+      {/* Floating Operational AI Chatbot */}
 
       {/* Floating Operational AI Chatbot */}
       <ShiftChatbot

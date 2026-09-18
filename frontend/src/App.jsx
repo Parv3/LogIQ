@@ -3,11 +3,22 @@ import Header from './components/Header';
 import ScenarioSelector from './components/ScenarioSelector';
 import KpiCards from './components/KpiCards';
 import SafetyBanner from './components/SafetyBanner';
-import AnomalySection from './components/AnomalySection';
+import SensorChart from './components/SensorChart';
+import CorrelationHeatmap from './components/CorrelationHeatmap';
 import EvidenceTable from './components/EvidenceTable';
+import HypothesisCards from './components/HypothesisCards';
+import ShiftSignOff from './components/ShiftSignOff';
 import MultiShiftView from './components/MultiShiftView';
 import ReportView from './components/ReportView';
-import { Activity, Database, FileText, RefreshCw, Play, Code } from 'lucide-react';
+import FaqSection from './components/FaqSection';
+import ScrollProgress from './components/ScrollProgress';
+import BackToTop from './components/BackToTop';
+import CookieBanner from './components/CookieBanner';
+import FloatingContact from './components/FloatingContact';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsAndConditions from './components/TermsAndConditions';
+import { initUtmTracker } from './utils/utmTracker';
+import { Activity, Database, FileText, RefreshCw, Play, BarChart2, ShieldCheck, PenTool } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8000/api';
 
@@ -16,7 +27,8 @@ export default function App() {
   const [llmProvider, setLlmProvider] = useState('Gemini 2.5');
   const [scenarios, setScenarios] = useState([]);
   const [activeScenarioId, setActiveScenarioId] = useState('');
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('charts');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [currentPayload, setCurrentPayload] = useState(null);
   const [processedData, setProcessedData] = useState(null);
@@ -24,8 +36,11 @@ export default function App() {
   const [comparisonData, setComparisonData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check health and load scenarios on mount
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+
   useEffect(() => {
+    initUtmTracker();
     fetchHealth();
     fetchScenarios();
   }, []);
@@ -82,7 +97,6 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         setProcessedData(data);
-        // Automatically generate report
         generateReport(payload);
       }
     } catch (err) {
@@ -132,7 +146,7 @@ export default function App() {
           const updatedNext = await carryRes.json();
           setCurrentPayload(updatedNext);
           processShiftData(updatedNext);
-          setActiveTab('dashboard');
+          setActiveTab('charts');
         }
       }
     } catch (err) {
@@ -142,7 +156,6 @@ export default function App() {
 
   useEffect(() => {
     if (scenarios.length > 0) {
-      // Load comparison data across all scenarios
       Promise.all(scenarios.map(s => fetch(`${API_BASE}/scenario/${s.id}`).then(r => r.json())))
         .then(payloads => {
           fetch(`${API_BASE}/compare-shifts`, {
@@ -156,9 +169,23 @@ export default function App() {
     }
   }, [scenarios]);
 
+  // Filter evidence and notes by search query if set
+  const filteredEvidence = processedData?.evidence_table?.filter(e =>
+    !searchQuery || e.evidence_proof.toLowerCase().includes(searchQuery.toLowerCase()) || e.metric_or_alarm.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Header isApiOnline={isApiOnline} llmProvider={llmProvider} />
+      <ScrollProgress />
+
+      <Header
+        isApiOnline={isApiOnline}
+        llmProvider={llmProvider}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onOpenPrivacy={() => setIsPrivacyOpen(true)}
+        onOpenTerms={() => setIsTermsOpen(true)}
+      />
 
       <main className="dashboard-container">
         {/* Scenario Loader Bar */}
@@ -181,39 +208,55 @@ export default function App() {
         {processedData && <KpiCards kpis={processedData.kpis} />}
 
         {/* Action Controls & Navigation Tabs */}
-        <div className="glass-panel" style={{ padding: '0.85rem 1.25rem' }}>
+        <div className="industrial-card no-print" style={{ padding: '0.75rem 1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-            <div className="tabs-header" style={{ border: 'none', padding: 0, margin: 0 }}>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
               <button
-                onClick={() => setActiveTab('dashboard')}
-                className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('charts')}
+                className={`btn ${activeTab === 'charts' ? 'btn-primary' : 'btn-secondary'}`}
               >
-                <Activity size={16} />
-                <span>Shift Dashboard & Anomalies</span>
+                <BarChart2 size={15} />
+                <span>Sensor Charts & Heatmap</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('hypotheses')}
+                className={`btn ${activeTab === 'hypotheses' ? 'btn-primary' : 'btn-secondary'}`}
+              >
+                <ShieldCheck size={15} />
+                <span>Hypothesis Checklist</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('signoff')}
+                className={`btn ${activeTab === 'signoff' ? 'btn-primary' : 'btn-secondary'}`}
+              >
+                <PenTool size={15} />
+                <span>Shift Sign-Off</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('evidence')}
-                className={`tab-btn ${activeTab === 'evidence' ? 'active' : ''}`}
+                className={`btn ${activeTab === 'evidence' ? 'btn-primary' : 'btn-secondary'}`}
               >
-                <Database size={16} />
+                <Database size={15} />
                 <span>Evidence Table</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('report')}
-                className={`tab-btn ${activeTab === 'report' ? 'active' : ''}`}
+                className={`btn ${activeTab === 'report' ? 'btn-primary' : 'btn-secondary'}`}
               >
-                <FileText size={16} />
-                <span>Handover Report & Audit</span>
+                <FileText size={15} />
+                <span>Handover Briefing & Audit</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('multishift')}
-                className={`tab-btn ${activeTab === 'multishift' ? 'active' : ''}`}
+                className={`btn ${activeTab === 'multishift' ? 'btn-primary' : 'btn-secondary'}`}
               >
-                <RefreshCw size={16} />
-                <span>Multi-Shift Carry & Compare</span>
+                <RefreshCw size={15} />
+                <span>24H Multi-Shift Timeline</span>
               </button>
             </div>
 
@@ -222,21 +265,33 @@ export default function App() {
               className="btn btn-primary"
             >
               <Play size={14} />
-              <span>Regenerate Handover Report</span>
+              <span>Re-run Handover Briefing</span>
             </button>
           </div>
         </div>
 
         {/* Tab View Contents */}
-        {activeTab === 'dashboard' && processedData && (
-          <AnomalySection
+        {activeTab === 'charts' && processedData && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <SensorChart sensorReadings={currentPayload?.sensor_readings} />
+            <CorrelationHeatmap correlations={processedData.correlations} />
+          </div>
+        )}
+
+        {activeTab === 'hypotheses' && processedData && (
+          <HypothesisCards
             anomalies={processedData.anomalies}
+            safetyAlarms={processedData.safety_alarms}
             correlations={processedData.correlations}
           />
         )}
 
+        {activeTab === 'signoff' && currentPayload && (
+          <ShiftSignOff shiftId={currentPayload.shift_id} lineId={currentPayload.line_id} />
+        )}
+
         {activeTab === 'evidence' && processedData && (
-          <EvidenceTable evidence={processedData.evidence_table} />
+          <EvidenceTable evidence={filteredEvidence} />
         )}
 
         {activeTab === 'report' && (
@@ -250,7 +305,17 @@ export default function App() {
             comparisonData={comparisonData}
           />
         )}
+
+        {/* FAQ Section */}
+        <FaqSection />
       </main>
+
+      <BackToTop />
+      <CookieBanner />
+      <FloatingContact />
+
+      <PrivacyPolicy isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+      <TermsAndConditions isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
     </div>
   );
 }

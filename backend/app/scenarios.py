@@ -15,11 +15,35 @@ SCENARIOS: Dict[str, ShiftPayload] = {
         total_inspected=437,
         operating_time_minutes=480.0,
         sensor_readings=[
-            SensorReading(timestamp="06:30", metric="gearbox_temp_c", value=68.5, unit="°C"),
-            SensorReading(timestamp="08:15", metric="gearbox_temp_c", value=82.0, unit="°C"),
-            SensorReading(timestamp="09:45", metric="gearbox_temp_c", value=98.4, unit="°C"),
-            SensorReading(timestamp="11:20", metric="hydraulic_pressure_bar", value=142.5, unit="bar"),
+            SensorReading(timestamp="06:00", metric="gearbox_temp_c", value=62.0, unit="°C"),
+            SensorReading(timestamp="06:30", metric="gearbox_temp_c", value=64.5, unit="°C"),
+            SensorReading(timestamp="07:00", metric="gearbox_temp_c", value=67.0, unit="°C"),
+            SensorReading(timestamp="07:30", metric="gearbox_temp_c", value=71.2, unit="°C"),
+            SensorReading(timestamp="08:00", metric="gearbox_temp_c", value=76.8, unit="°C"),
+            SensorReading(timestamp="08:30", metric="gearbox_temp_c", value=82.4, unit="°C"),
+            SensorReading(timestamp="09:00", metric="gearbox_temp_c", value=89.1, unit="°C"),
+            SensorReading(timestamp="09:30", metric="gearbox_temp_c", value=95.6, unit="°C"),
+            SensorReading(timestamp="09:45", metric="gearbox_temp_c", value=98.4, unit="°C"),  # ANOMALY SPIKE
+            SensorReading(timestamp="10:30", metric="gearbox_temp_c", value=84.0, unit="°C"),  # Cooling down
+            SensorReading(timestamp="11:00", metric="gearbox_temp_c", value=78.2, unit="°C"),
+            SensorReading(timestamp="11:30", metric="gearbox_temp_c", value=76.5, unit="°C"),
+            SensorReading(timestamp="12:00", metric="gearbox_temp_c", value=75.1, unit="°C"),
+            SensorReading(timestamp="12:30", metric="gearbox_temp_c", value=74.0, unit="°C"),
+            SensorReading(timestamp="13:00", metric="gearbox_temp_c", value=73.5, unit="°C"),
+            SensorReading(timestamp="13:30", metric="gearbox_temp_c", value=72.8, unit="°C"),
+
+            # Hydraulic Pressure readings
+            SensorReading(timestamp="06:00", metric="hydraulic_pressure_bar", value=120.0, unit="bar"),
+            SensorReading(timestamp="08:00", metric="hydraulic_pressure_bar", value=122.5, unit="bar"),
+            SensorReading(timestamp="10:00", metric="hydraulic_pressure_bar", value=135.0, unit="bar"),
+            SensorReading(timestamp="11:20", metric="hydraulic_pressure_bar", value=142.5, unit="bar"),  # SPIKE
+            SensorReading(timestamp="13:30", metric="hydraulic_pressure_bar", value=121.0, unit="bar"),
+
+            # Vibration readings
+            SensorReading(timestamp="06:00", metric="vibration_mm_s", value=2.2, unit="mm/s"),
+            SensorReading(timestamp="09:30", metric="vibration_mm_s", value=3.5, unit="mm/s"),
             SensorReading(timestamp="12:10", metric="vibration_mm_s", value=4.8, unit="mm/s"),
+            SensorReading(timestamp="13:30", metric="vibration_mm_s", value=2.6, unit="mm/s")
         ],
         alarms=[
             MachineAlarm(
@@ -97,8 +121,11 @@ SCENARIOS: Dict[str, ShiftPayload] = {
         total_inspected=1188,
         operating_time_minutes=480.0,
         sensor_readings=[
+            SensorReading(timestamp="14:00", metric="capping_torque_nm", value=3.4, unit="Nm"),
             SensorReading(timestamp="15:00", metric="capping_torque_nm", value=3.2, unit="Nm"),
+            SensorReading(timestamp="16:00", metric="capping_torque_nm", value=2.8, unit="Nm"),
             SensorReading(timestamp="17:30", metric="capping_torque_nm", value=1.8, unit="Nm"),
+            SensorReading(timestamp="19:00", metric="capping_torque_nm", value=1.4, unit="Nm"),
             SensorReading(timestamp="20:00", metric="capping_torque_nm", value=1.1, unit="Nm"),
             SensorReading(timestamp="21:15", metric="vibration_mm_s", value=3.9, unit="mm/s")
         ],
@@ -146,8 +173,10 @@ SCENARIOS: Dict[str, ShiftPayload] = {
         total_inspected=612,
         operating_time_minutes=480.0,
         sensor_readings=[
-            SensorReading(timestamp="23:00", metric="spindle_speed_rpm", value=3002.0, unit="RPM"),
-            SensorReading(timestamp="03:00", metric="spindle_speed_rpm", value=2998.0, unit="RPM"),
+            SensorReading(timestamp="22:00", metric="spindle_speed_rpm", value=3000.0, unit="RPM"),
+            SensorReading(timestamp="00:00", metric="spindle_speed_rpm", value=3002.0, unit="RPM"),
+            SensorReading(timestamp="02:00", metric="spindle_speed_rpm", value=2995.0, unit="RPM"),
+            SensorReading(timestamp="04:00", metric="spindle_speed_rpm", value=2998.0, unit="RPM"),
             SensorReading(timestamp="05:30", metric="coolant_temp_c", value=24.1, unit="°C")
         ],
         alarms=[],
